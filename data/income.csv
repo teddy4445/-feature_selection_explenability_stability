@@ -1,4 +1,4 @@
-﻿age,JobType,EdType,maritalstatus,occupation,relationship,race,gender,capitalgain,capitalloss,hoursperweek,nativecountry,SalStat
+﻿age,target,EdType,maritalstatus,occupation,relationship,race,gender,capitalgain,capitalloss,hoursperweek,nativecountry,SalStat
 45, Private, HS-grad, Divorced, Adm-clerical, Not-in-family, White, Female,0,0,28, United-States," less than or equal to 50,000"
 24, Federal-gov, HS-grad, Never-married, Armed-Forces, Own-child, White, Male,0,0,40, United-States," less than or equal to 50,000"
 44, Private, Some-college, Married-civ-spouse, Prof-specialty, Husband, White, Male,0,0,40, United-States," greater than 50,000"
