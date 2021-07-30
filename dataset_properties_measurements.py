@@ -15,8 +15,8 @@ class DatasetPropertiesMeasurements:
 
     @staticmethod
     def row_count(dataset):
-        pass
+        return dataset.shape[0]
 
     @staticmethod
     def col_count(dataset):
-        pass
+        return dataset.shape[1]
