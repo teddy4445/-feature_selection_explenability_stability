@@ -68,7 +68,7 @@ class ExplainabilityMetrices:
             # TODO: add all the SKLEARN models here (check out lazy_predict module for the list of models)
         else:
             raise Exception("We do not support rosenfeld_r_metric for the provided model. "
-                            "Make sure it is possible to count the rules in the model")
+                            "Make sure it is possible to count the rules in this model")
 
     @staticmethod
     def rosenfeld_s_metric(features_original, features_after_boosting):
