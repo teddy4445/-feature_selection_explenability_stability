@@ -3,6 +3,7 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, r2_sc
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn import tree
 
 
 class ExplainabilityMetrices:
@@ -105,7 +106,7 @@ class ExplainabilityMetrices:
 
     @staticmethod
     def _get_tree_rules_count(tree):
-        pass
+        return tree.tree_.node_count
         # TODO: implement this function
 
     # END - HELP FUNCTIONS #
