@@ -2,6 +2,7 @@
 import scipy
 import numpy as np
 import pandas as pd
+from sklearn.cross_decomposition import CCA
 
 
 class DatasetPropertiesMeasurements:
@@ -14,6 +15,10 @@ class DatasetPropertiesMeasurements:
     More ideas from: Shen, Z., Chen, X., Garibaldi, J. M., A Novel Meta Learning Framework for Feature Selection using Data Synthesis and Fuzzy Similarity. IEEE World Congress on Computational Intelligence. 2020. ----> (https://arxiv.org/pdf/2005.09856.pdf)
     """
 
+    # consts #
+    TARGET_COL_NAME = "target"
+    # end - consts #
+
     @staticmethod
     def get_dataset_profile(dataset: pd.DataFrame):
         """
@@ -25,8 +30,19 @@ class DatasetPropertiesMeasurements:
             "col_numerical_count": DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset),
             "col_categorical_count": DatasetPropertiesMeasurements.col_categorical_count(dataset=dataset),
             "classes_count": DatasetPropertiesMeasurements.classes_count(dataset=dataset),
-            "average_pearson_linearly": DatasetPropertiesMeasurements.average_pearson_linearly(dataset=dataset),
-            "average_linearly_to_target": DatasetPropertiesMeasurements.average_linearly_to_target(dataset=dataset)
+            "average_linearly_to_target": DatasetPropertiesMeasurements.average_linearly_to_target(dataset=dataset),
+            "cancor_1": DatasetPropertiesMeasurements.cancor_1(dataset=dataset),
+            "cancor_2": DatasetPropertiesMeasurements.cancor_2(dataset=dataset),
+            "std_linearly_to_target": DatasetPropertiesMeasurements.std_linearly_to_target(dataset=dataset),
+            "kurtosis": DatasetPropertiesMeasurements.kurtosis(dataset=dataset),
+            "average_asymmetry_of_features": DatasetPropertiesMeasurements.average_asymmetry_of_features(dataset=dataset),
+            "average_correlation_between_features": DatasetPropertiesMeasurements.average_correlation_between_features(dataset=dataset),
+            "average_coefficient_of_variation_of_feature": DatasetPropertiesMeasurements.average_coefficient_of_variation_of_feature(dataset=dataset),
+            "std_coefficient_of_variation_of_feature": DatasetPropertiesMeasurements.std_coefficient_of_variation_of_feature(dataset=dataset),
+            "average_coefficient_of_anomaly": DatasetPropertiesMeasurements.average_coefficient_of_anomaly(dataset=dataset),
+            "std_coefficient_of_anomaly": DatasetPropertiesMeasurements.std_coefficient_of_anomaly(dataset=dataset),
+            "average_entropy_of_features": DatasetPropertiesMeasurements.average_entropy_of_features(dataset=dataset),
+            "std_entropy_of_features": DatasetPropertiesMeasurements.std_entropy_of_features(dataset=dataset)
         }
 
     @staticmethod
@@ -65,56 +81,48 @@ class DatasetPropertiesMeasurements:
 
     @staticmethod
     def classes_count(dataset: pd.DataFrame):
-        return dataset["target"].nunique()
+        return dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME].nunique()
 
     @staticmethod
     def average_linearly_to_target(dataset: pd.DataFrame):
         """
         :return: the average R^2 between the explainable features and the target feature
         """
-        pass
+        return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
+                        for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
+
+    @staticmethod
+    def std_linearly_to_target(dataset: pd.DataFrame):
+        """
+        :return: the std R^2 between the explainable features and the target feature
+        """
+        return np.std([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
+                       for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
 
     @staticmethod
     def cancor_1(dataset: pd.DataFrame):
         """
         :return: canonical correlation for the best single combination of features
         """
-        pass
+        cca = CCA(n_components=1)
+        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False)
+        Uc, Vc = cca.fit_transform(x, dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])
+        return np.corrcoef(Uc.T, Vc.T)[0, 1]
 
     @staticmethod
     def cancor_2(dataset: pd.DataFrame):
         """
         :return: canonical correlation for the best single combination of features orthogonal to cancor_1
         """
-        pass
-
-    @staticmethod
-    def fract_1(dataset: pd.DataFrame):
-        """
-        :return: first normalized eigenvalues of canonical discriminant matrix
-        """
-        pass
-
-    @staticmethod
-    def fract_2(dataset: pd.DataFrame):
-        """
-        :return: second normalized eigenvalues of canonical discriminant matrix
-        """
-        pass
-
-    @staticmethod
-    def skewness(dataset: pd.DataFrame):
-        """
-        :return: mean asymmetry of the probability distributions of the features (nonnormality)
-        """
-        pass
+        return np.diag(DatasetPropertiesMeasurements.cancor_1(dataset=dataset))
 
     @staticmethod
     def kurtosis(dataset: pd.DataFrame):
         """
         :return: mean peakedness of the probability distributions of the features
         """
-        pass
+        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False)
+        return np.mean([scipy.stats.kurtosis(x[column]) for column in list(x)])
 
     @staticmethod
     def average_asymmetry_of_features(dataset: pd.DataFrame):
@@ -140,11 +148,18 @@ class DatasetPropertiesMeasurements:
     @staticmethod
     def average_coefficient_of_variation_of_feature(dataset: pd.DataFrame):
         """
-        :return: It measures the average coefficient of variation by the ratio of the standard deviation and the mean of the feature values.
+        :return: It measures the STD coefficient of variation by the ratio of the standard deviation and the mean of the feature values.
         """
         # idea from (Shen et al., 2020)
-        n = len(list(dataset))
-        return sum([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)]) / len(list(dataset))
+        return np.mean([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+
+    @staticmethod
+    def std_coefficient_of_variation_of_feature(dataset: pd.DataFrame):
+        """
+        :return: It measures the STD coefficient of variation by the ratio of the standard deviation and the mean of the feature values.
+        """
+        # idea from (Shen et al., 2020)
+        return np.std([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
 
     @staticmethod
     def average_coefficient_of_anomaly(dataset: pd.DataFrame):
@@ -152,8 +167,15 @@ class DatasetPropertiesMeasurements:
         :return: It measures the average coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
         """
         # idea from (Shen et al., 2020)
-        n = len(list(dataset))
-        return sum([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)]) / len(list(dataset))
+        return np.mean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+
+    @staticmethod
+    def std_coefficient_of_anomaly(dataset: pd.DataFrame):
+        """
+        :return: It measures the STD coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
+        """
+        # idea from (Shen et al., 2020)
+        return np.std([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
 
     @staticmethod
     def average_entropy_of_features(dataset: pd.DataFrame):
@@ -161,5 +183,12 @@ class DatasetPropertiesMeasurements:
         :return: It measures the average coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
         """
         # idea from (Shen et al., 2020)
-        n = len(list(dataset))
-        return sum([scipy.stats.entropy(dataset[column]) for column in list(dataset)]) / len(list(dataset))
+        return np.mean([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+
+    @staticmethod
+    def std_entropy_of_features(dataset: pd.DataFrame):
+        """
+        :return: It measures the STD coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
+        """
+        # idea from (Shen et al., 2020)
+        return np.std([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
