@@ -71,6 +71,30 @@ class DatasetPropertiesMeasurements:
         }
 
     @staticmethod
+    def get_dataset_profile_vector(dataset: pd.DataFrame):
+        """
+        Run all the measurements and summary them up in a dict
+        """
+        return [DatasetPropertiesMeasurements.row_count(dataset=dataset),
+                DatasetPropertiesMeasurements.col_count(dataset=dataset),
+                DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset),
+                DatasetPropertiesMeasurements.col_categorical_count(dataset=dataset),
+                DatasetPropertiesMeasurements.classes_count(dataset=dataset),
+                DatasetPropertiesMeasurements.cancor_1(dataset=dataset),
+                DatasetPropertiesMeasurements.cancor_2(dataset=dataset),
+                DatasetPropertiesMeasurements.kurtosis(dataset=dataset),
+                DatasetPropertiesMeasurements.average_asymmetry_of_features(dataset=dataset),
+                DatasetPropertiesMeasurements.average_linearly_to_target(dataset=dataset),
+                DatasetPropertiesMeasurements.std_linearly_to_target(dataset=dataset),
+                DatasetPropertiesMeasurements.average_correlation_between_features(dataset=dataset),
+                DatasetPropertiesMeasurements.average_coefficient_of_variation_of_feature(dataset=dataset),
+                DatasetPropertiesMeasurements.std_coefficient_of_variation_of_feature(dataset=dataset),
+                DatasetPropertiesMeasurements.average_coefficient_of_anomaly(dataset=dataset),
+                DatasetPropertiesMeasurements.std_coefficient_of_anomaly(dataset=dataset),
+                DatasetPropertiesMeasurements.average_entropy_of_features(dataset=dataset),
+                DatasetPropertiesMeasurements.std_entropy_of_features(dataset=dataset)]
+
+    @staticmethod
     def row_count(dataset: pd.DataFrame):
         # Idea from (Engels and Theusinger 1998)
         return dataset.shape[0]

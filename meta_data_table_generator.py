@@ -49,8 +49,34 @@ class MetaDataTableGenerator:
         except:
             pass
         # create empty dataset we will populate during the function
+        answer_df = pd.DataFrame(data=None, columns=MetaDataTableGenerator.prepare_columns())
+        for path in glob.glob(os.path.join(data_folder_path, "*")):
+            dataset = pd.read_csv(path)
+            # get its name
+            dataset_name = os.path.basename(path)
 
-        # db name
+            # save this dataset raw results in its folder
+            try:
+                os.mkdir(os.path.join(answer_folder_path, dataset_name))
+            except:
+                pass
+
+            # calculate the data's vector
+            dataset_summary_results = MetaDataTableGenerator.calculate_single_dataset_vector(dataset=dataset,
+                                                                                             dataset_name=dataset_name)
+
+            # add to the global dataframe
+            answer_df.append(dataset_summary_results)
+        # save the results to the basic folder
+        answer_df.to_csv(os.path.join(data_folder_path, "meta_dataset.csv"))
+
+    # HELP FUNCTIONS #
+
+    @staticmethod
+    def prepare_columns():
+        """
+        Prepare the columns of the meta-data table
+        """
         columns = ["ds_name"]
         # get the "X" columns
         columns.extend(["x_{}".format(col_name) for col_name in DatasetPropertiesMeasurements.get_columns()])
@@ -68,33 +94,34 @@ class MetaDataTableGenerator:
                     columns.append("stability_{}_{}_{}".format(stability_metric,
                                                                fs_filter,
                                                                stability_test))
-
-        answer_df = pd.DataFrame(data=None, columns=columns)
-        for path in glob.glob(os.path.join(data_folder_path, "*")):
-            dataset = pd.read_csv(path)
-            # get its name
-            dataset_name = os.path.basename(path)
-            # NOTE: we assume that all the datasets are classification tasks and that the last column is the target column #
-            dataset_summary_results = []
-
-            # save this dataset raw results in its folder
-            try:
-                os.mkdir(os.path.join(answer_folder_path, dataset_name))
-            except:
-                pass
-
-            # perform all the needed tests and experiments on this dataset
-            # TODO: finish it later
-
-            # add to the global dataframe
-            answer_df.append(dataset_summary_results)
-        # save the results to the basic folder
-        answer_df.to_csv(os.path.join(data_folder_path, "meta_dataset.csv"))
-
-    # HELP FUNCTION #
+        return columns
 
     @staticmethod
-    def help():
-        pass
+    def calculate_single_dataset_vector(dataset,
+                                        dataset_name: str):
+        """
+        Calculate the row corosponding to each dataset in the meta-data table
+        """
+        # NOTE: we assume that all the datasets are classification tasks and that the last column is the target column #
+        dataset_summary_results = [dataset_name]
+        # perform all the needed tests and experiments on this dataset
+        dataset_summary_results.extend(
+            DatasetPropertiesMeasurements.get_dataset_profile_vector(dataset=dataset).values())
 
-    # END - HELP FUNCTION #
+        # columns for the expandability feature selection
+        for metric in MetaDataTableGenerator.METRICS:
+            for fs_filter in MetaDataTableGenerator.FS_FILTER:
+                for fs_embedding in MetaDataTableGenerator.FS_EMBEDDING:
+                    # TODO: finish here
+                    dataset_summary_results.append(1)
+
+        # columns for the stability feature selection
+        for stability_metric in MetaDataTableGenerator.STABILITY_METRICS:
+            for fs_filter in MetaDataTableGenerator.FS_FILTER:
+                for stability_test in MetaDataTableGenerator.STABILITY_TESTS:
+                    # TODO: finish here
+                    dataset_summary_results.append(1)
+        # return answer
+        return dataset_summary_results
+
+    # END - HELP FUNCTIONS #
