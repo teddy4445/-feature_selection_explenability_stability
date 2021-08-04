@@ -16,10 +16,11 @@ class MetaDataTableGenerator:
     methods and the stability of these methods.
     """
 
-    METRICS = [""]
+    METRICS = ["rosenfeld_f_metric_{}_harmonic_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]]
     STABILITY_TESTS = ["data",
                        "features",
                        "lyapunov"]
+    STABILITY_METRICS = ["iou"]
     FS_FILTER = ["chi2",
                  "symmetrical_uncertainty",
                  "relief",
@@ -32,9 +33,8 @@ class MetaDataTableGenerator:
                  "mutual_information",
                  "permutation_feature_importance"]
     FS_EMBEDDING = ["dt",
-                    "symmetrical_uncertainty",
-                    "relief",
-                    "information_gain"]
+                    "lasso",
+                    "linearSVC"]
 
     @staticmethod
     def run(data_folder_path: str,
@@ -53,9 +53,21 @@ class MetaDataTableGenerator:
         # db name
         columns = ["ds_name"]
         # get the "X" columns
-        columns.extend(DatasetPropertiesMeasurements.get_columns())
+        columns.extend(["x_{}".format(col_name) for col_name in DatasetPropertiesMeasurements.get_columns()])
         # get the FS filter + FS embedding + metrics
-
+        for metric in MetaDataTableGenerator.METRICS:
+            for fs_filter in MetaDataTableGenerator.FS_FILTER:
+                for fs_embedding in MetaDataTableGenerator.FS_EMBEDDING:
+                    columns.append("expandability_{}_{}_{}".format(metric,
+                                                                   fs_filter,
+                                                                   fs_embedding))
+        # get the FS filter + stability test + stability metric
+        for stability_metric in MetaDataTableGenerator.STABILITY_METRICS:
+            for fs_filter in MetaDataTableGenerator.FS_FILTER:
+                for stability_test in MetaDataTableGenerator.STABILITY_TESTS:
+                    columns.append("stability_{}_{}_{}".format(stability_metric,
+                                                               fs_filter,
+                                                               stability_test))
 
         answer_df = pd.DataFrame(data=None, columns=columns)
         for path in glob.glob(os.path.join(data_folder_path, "*")):
