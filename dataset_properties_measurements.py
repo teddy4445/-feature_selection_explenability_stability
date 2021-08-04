@@ -20,6 +20,31 @@ class DatasetPropertiesMeasurements:
     # end - consts #
 
     @staticmethod
+    def get_columns():
+        """
+        Run all the measurements and summary them up in a dict
+        """
+        return ["row_count",
+                "col_count",
+                "col_numerical_count",
+                "col_categorical_count",
+                "classes_count",
+                "cancor_1",
+                "cancor_2",
+                "kurtosis",
+                "average_asymmetry_of_features",
+                "average_linearly_to_target",
+                "std_linearly_to_target",
+                "average_correlation_between_features",
+                "average_coefficient_of_variation_of_feature",
+                "std_coefficient_of_variation_of_feature",
+                "average_coefficient_of_anomaly",
+                "std_coefficient_of_anomaly",
+                "average_entropy_of_features",
+                "std_entropy_of_features"
+        ]
+
+    @staticmethod
     def get_dataset_profile(dataset: pd.DataFrame):
         """
         Run all the measurements and summary them up in a dict

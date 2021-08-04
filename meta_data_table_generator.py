@@ -16,6 +16,26 @@ class MetaDataTableGenerator:
     methods and the stability of these methods.
     """
 
+    METRICS = [""]
+    STABILITY_TESTS = ["data",
+                       "features",
+                       "lyapunov"]
+    FS_FILTER = ["chi2",
+                 "symmetrical_uncertainty",
+                 "relief",
+                 "information_gain",
+                 "support_vector_machines_recursive_feature_elimination",
+                 "pearson_correlation",
+                 "remove_low_variance",
+                 "missing_value_ratio",
+                 "fishers_score",
+                 "mutual_information",
+                 "permutation_feature_importance"]
+    FS_EMBEDDING = ["dt",
+                    "symmetrical_uncertainty",
+                    "relief",
+                    "information_gain"]
+
     @staticmethod
     def run(data_folder_path: str,
             answer_folder_path: str):
@@ -29,49 +49,15 @@ class MetaDataTableGenerator:
         except:
             pass
         # create empty dataset we will populate during the function
-        answer_df = pd.DataFrame(data=None, columns=["ds_name",
-                                                     "ds_rows",
-                                                     "ds_col_numerical_count",
-                                                     "ds_col_categorical_count",
-                                                     "ds_classes_count",
-                                                     "ds_cancor_1",
-                                                     "ds_cancor_2",
-                                                     "ds_std_linearly_to_target",
-                                                     "ds_kurtosis",
-                                                     "ds_average_asymmetry_of_features",
-                                                     "ds_average_linearly_to_target",
-                                                     "ds_std_linearly_to_target",
-                                                     "ds_average_correlation_between_features",
-                                                     "ds_average_coefficient_of_variation_of_feature",
-                                                     "ds_std_coefficient_of_variation_of_feature",
-                                                     "ds_average_coefficient_of_anomaly",
-                                                     "ds_std_coefficient_of_anomaly",
-                                                     "ds_average_entropy_of_features",
-                                                     "ds_std_entropy_of_features",
-                                                     "ds_other_feature_1",
-                                                     "ds_other_feature_2",
-                                                     "ds_other_feature_3",
-                                                     "ds_other_feature_4",
-                                                     "ds_other_feature_5",
-                                                     "ds_other_feature_6",
-                                                     "ds_other_feature_7",
-                                                     "ds_other_feature_8",
-                                                     "ds_other_feature_9",
-                                                     "ds_other_feature_10",
-                                                     "stability_feature_1",
-                                                     "stability_feature_2",
-                                                     "stability_feature_3",
-                                                     "stability_feature_4",
-                                                     "stability_feature_5",
-                                                     "stability_feature_6",
-                                                     "stability_feature_7",
-                                                     "expandability_feature_1",
-                                                     "expandability_feature_2",
-                                                     "expandability_feature_3",
-                                                     "expandability_feature_4",
-                                                     "expandability_feature_5",
-                                                     "expandability_feature_6",
-                                                     "expandability_feature_7"])
+
+        # db name
+        columns = ["ds_name"]
+        # get the "X" columns
+        columns.extend(DatasetPropertiesMeasurements.get_columns())
+        # get the FS filter + FS embedding + metrics
+
+
+        answer_df = pd.DataFrame(data=None, columns=columns)
         for path in glob.glob(os.path.join(data_folder_path, "*")):
             dataset = pd.read_csv(path)
             # get its name
