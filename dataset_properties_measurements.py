@@ -17,6 +17,7 @@ class DatasetPropertiesMeasurements:
 
     # consts #
     TARGET_COL_NAME = "target"
+    IS_DEBUG = False
     # end - consts #
 
     @staticmethod
@@ -29,8 +30,7 @@ class DatasetPropertiesMeasurements:
                 "col_numerical_count",
                 "col_categorical_count",
                 "classes_count",
-                "cancor_1",
-                "cancor_2",
+                "cancor",
                 "kurtosis",
                 "average_asymmetry_of_features",
                 "average_linearly_to_target",
@@ -55,8 +55,7 @@ class DatasetPropertiesMeasurements:
             "col_numerical_count": DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset),
             "col_categorical_count": DatasetPropertiesMeasurements.col_categorical_count(dataset=dataset),
             "classes_count": DatasetPropertiesMeasurements.classes_count(dataset=dataset),
-            "cancor_1": DatasetPropertiesMeasurements.cancor_1(dataset=dataset),
-            "cancor_2": DatasetPropertiesMeasurements.cancor_2(dataset=dataset),
+            "cancor": DatasetPropertiesMeasurements.cancor(dataset=dataset),
             "kurtosis": DatasetPropertiesMeasurements.kurtosis(dataset=dataset),
             "average_asymmetry_of_features": DatasetPropertiesMeasurements.average_asymmetry_of_features(dataset=dataset),
             "average_linearly_to_target": DatasetPropertiesMeasurements.average_linearly_to_target(dataset=dataset),
@@ -80,8 +79,7 @@ class DatasetPropertiesMeasurements:
                 DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset),
                 DatasetPropertiesMeasurements.col_categorical_count(dataset=dataset),
                 DatasetPropertiesMeasurements.classes_count(dataset=dataset),
-                DatasetPropertiesMeasurements.cancor_1(dataset=dataset),
-                DatasetPropertiesMeasurements.cancor_2(dataset=dataset),
+                DatasetPropertiesMeasurements.cancor(dataset=dataset),
                 DatasetPropertiesMeasurements.kurtosis(dataset=dataset),
                 DatasetPropertiesMeasurements.average_asymmetry_of_features(dataset=dataset),
                 DatasetPropertiesMeasurements.average_linearly_to_target(dataset=dataset),
@@ -97,11 +95,15 @@ class DatasetPropertiesMeasurements:
     @staticmethod
     def row_count(dataset: pd.DataFrame):
         # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.row_count running")
         return dataset.shape[0]
 
     @staticmethod
     def col_count(dataset: pd.DataFrame):
         # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.col_count running")
         return dataset.shape[1]
 
     @staticmethod
@@ -113,6 +115,8 @@ class DatasetPropertiesMeasurements:
         :return: the number of categorical colums
         """
         # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.col_numerical_count running")
         data_size = len(list(dataset.iloc[0]))
         return len([1 for column in list(dataset) if dataset[column].nunique() > max_values])
 
@@ -125,11 +129,15 @@ class DatasetPropertiesMeasurements:
         :return: the number of categorical colums
         """
         # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.col_categorical_count running")
         return len(list(dataset)) - DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset,
                                                                                       max_values=max_values)
 
     @staticmethod
     def classes_count(dataset: pd.DataFrame):
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.classes_count running")
         return dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME].nunique()
 
     @staticmethod
@@ -137,6 +145,8 @@ class DatasetPropertiesMeasurements:
         """
         :return: the average R^2 between the explainable features and the target feature
         """
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.average_linearly_to_target running")
         return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
                         for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
 
@@ -145,32 +155,31 @@ class DatasetPropertiesMeasurements:
         """
         :return: the std R^2 between the explainable features and the target feature
         """
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.std_linearly_to_target running")
         return np.std([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
                        for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
 
     @staticmethod
-    def cancor_1(dataset: pd.DataFrame):
+    def cancor(dataset: pd.DataFrame):
         """
         :return: canonical correlation for the best single combination of features
         """
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.cancor running")
         cca = CCA(n_components=1)
-        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False)
+        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
         Uc, Vc = cca.fit_transform(x, dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])
         return np.corrcoef(Uc.T, Vc.T)[0, 1]
-
-    @staticmethod
-    def cancor_2(dataset: pd.DataFrame):
-        """
-        :return: canonical correlation for the best single combination of features orthogonal to cancor_1
-        """
-        return np.diag(DatasetPropertiesMeasurements.cancor_1(dataset=dataset))
 
     @staticmethod
     def kurtosis(dataset: pd.DataFrame):
         """
         :return: mean peakedness of the probability distributions of the features
         """
-        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.kurtosis running")
+        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
         return np.mean([scipy.stats.kurtosis(x[column]) for column in list(x)])
 
     @staticmethod
@@ -179,6 +188,8 @@ class DatasetPropertiesMeasurements:
         :return: It measures the average value of the Pearson’s asymmetry coefficient.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.average_asymmetry_of_features running")
         return 3 * sum([(np.mean(dataset[column]) - np.median(dataset[column]))/np.std(dataset[column]) for column in list(dataset)]) / len(list(dataset))
 
     @staticmethod
@@ -187,10 +198,12 @@ class DatasetPropertiesMeasurements:
         :return: It measures the average value of Pearson’s correlation coefficient between different features.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.average_correlation_between_features running")
         n = len(list(dataset))
         cols = list(dataset)
         return 2 * sum([sum([scipy.stats.pearsonr(dataset[cols[column_i]],
-                                                  dataset[cols[column_j]])
+                                                  dataset[cols[column_j]])[0]
                              for column_j in range(column_i + 1, len(cols))])
                         for column_i in range(len(cols)-1)]) / (n * (n-1))
 
@@ -200,6 +213,8 @@ class DatasetPropertiesMeasurements:
         :return: It measures the STD coefficient of variation by the ratio of the standard deviation and the mean of the feature values.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.average_coefficient_of_variation_of_feature running")
         return np.mean([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
 
     @staticmethod
@@ -208,6 +223,8 @@ class DatasetPropertiesMeasurements:
         :return: It measures the STD coefficient of variation by the ratio of the standard deviation and the mean of the feature values.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.std_coefficient_of_variation_of_feature running")
         return np.std([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
 
     @staticmethod
@@ -216,6 +233,8 @@ class DatasetPropertiesMeasurements:
         :return: It measures the average coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.average_coefficient_of_anomaly running")
         return np.mean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
 
     @staticmethod
@@ -224,6 +243,8 @@ class DatasetPropertiesMeasurements:
         :return: It measures the STD coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.std_coefficient_of_anomaly running")
         return np.std([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
 
     @staticmethod
@@ -232,6 +253,8 @@ class DatasetPropertiesMeasurements:
         :return: It measures the average coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.average_entropy_of_features running")
         return np.mean([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
 
     @staticmethod
@@ -240,4 +263,6 @@ class DatasetPropertiesMeasurements:
         :return: It measures the STD coefficient of anomaly by the ratio of the mean and the standard deviation of the feature values.
         """
         # idea from (Shen et al., 2020)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.std_entropy_of_features running")
         return np.std([scipy.stats.entropy(dataset[column]) for column in list(dataset)])

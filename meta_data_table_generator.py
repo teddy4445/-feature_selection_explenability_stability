@@ -50,16 +50,24 @@ class MetaDataTableGenerator:
             pass
         # create empty dataset we will populate during the function
         answer_df = pd.DataFrame(data=None, columns=MetaDataTableGenerator.prepare_columns())
+        # if we wish to see debuging
+        DatasetPropertiesMeasurements.IS_DEBUG = True
         for path in glob.glob(os.path.join(data_folder_path, "*")):
+            # print the file name if debuging mood
+            if DatasetPropertiesMeasurements.IS_DEBUG:
+                print("\n\nMetaDataTableGenerator: Working on file {}".format(path))
+            # get file's data
             dataset = pd.read_csv(path)
             # get its name
             dataset_name = os.path.basename(path)
 
+            """
             # save this dataset raw results in its folder
             try:
                 os.mkdir(os.path.join(answer_folder_path, dataset_name))
             except:
                 pass
+            """
 
             # calculate the data's vector
             dataset_summary_results = MetaDataTableGenerator.calculate_single_dataset_vector(dataset=dataset,
@@ -105,8 +113,7 @@ class MetaDataTableGenerator:
         # NOTE: we assume that all the datasets are classification tasks and that the last column is the target column #
         dataset_summary_results = [dataset_name]
         # perform all the needed tests and experiments on this dataset
-        dataset_summary_results.extend(
-            DatasetPropertiesMeasurements.get_dataset_profile_vector(dataset=dataset).values())
+        dataset_summary_results.extend(DatasetPropertiesMeasurements.get_dataset_profile_vector(dataset=dataset))
 
         # columns for the expandability feature selection
         for metric in MetaDataTableGenerator.METRICS:
@@ -125,3 +132,8 @@ class MetaDataTableGenerator:
         return dataset_summary_results
 
     # END - HELP FUNCTIONS #
+
+
+if __name__ == '__main__':
+    MetaDataTableGenerator.run(data_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed"),
+                               answer_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data"))
