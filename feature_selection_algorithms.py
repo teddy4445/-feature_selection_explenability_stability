@@ -1,12 +1,46 @@
 # library imports
+import numpy as np
 import pandas as pd
-from sklearn.feature_selection import chi2
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import Lasso
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.feature_selection import chi2, SelectFromModel
 
 
 class FeatureSelectionAlgorithms:
     """
     A collection of feature selection algorithms
     """
+
+    ### EMBEDDING ###
+
+    @staticmethod
+    def decision_tree(x: pd.DataFrame,
+                      y: pd.DataFrame):
+        return SelectFromModel(DecisionTreeClassifier().fit(x, y), prefit=True).transform(x)
+
+    @staticmethod
+    def lasso(x: pd.DataFrame,
+              y: pd.DataFrame):
+        features = list(x)
+        model = Lasso()
+        model.fit(x, y)
+        coefficients = model.named_steps['model'].coef_
+        importance = np.abs(coefficients)
+        return list(np.array(features)[importance > 0])
+
+    @staticmethod
+    def linear_svc(x: pd.DataFrame,
+                   y: pd.DataFrame):
+        # TODO: think on a good definition here
+        lsvc = LinearSVC(penalty="l1", dual=False).fit(x, y)
+        model = SelectFromModel(lsvc, prefit=True)
+        return list(model.transform(x))
+
+
+    ### END - EMBEDDING ###
+
+    ### FILTER ###
 
     @staticmethod
     def chi_square(x: pd.DataFrame,
@@ -100,3 +134,5 @@ class FeatureSelectionAlgorithms:
                                                                                                 y=y)
 
     # END - SAME NAME CALLS #
+
+    ### END - FILTER ###
