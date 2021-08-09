@@ -106,7 +106,7 @@ class ExplainabilityMetrices:
 
     @staticmethod
     def _get_tree_rules_count(tree):
-        return tree.tree_.node_count
+        return tree.tree_.node_count - tree.tree_.n_leaves
         # TODO: implement this function
 
     # END - HELP FUNCTIONS #
