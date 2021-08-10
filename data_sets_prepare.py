@@ -50,6 +50,7 @@ class DataSetPrepare:
                     if unique_count / df[col].size > DataSetPrepare.MAX_RATIO or unique_count > DataSetPrepare.MAX_UNIQUE_VALUES:
                         col_to_remove.append(col)
                     else:
+                        # TODO: maybe use one hot encoding instead
                         mapper = {value: index for index, value in enumerate(list(df[col].unique()))}
                         df[col] = df[col].apply(lambda x: mapper[x])
             # remove what we do not need

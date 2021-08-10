@@ -1,5 +1,5 @@
 # Feature Selection Research Project
-This project aims to investiage the properties of the feature selection from both
+This project aims to investigate the properties of the feature selection from both
 the explanability point of view and the stability.
 
 ADD HERE MORE INTRO LATER.
@@ -55,5 +55,6 @@ ADD HERE LATER.
 - seaborn              0.11.1
 - imbalanced-learn     0.8.0
 - scipy                latest
+- ITMO_FS              latest
 
-These can be found in the **requirements.txt** and easly installed using the "pip install requirements.txt" command in your terminal. 
+These can be found in the **requirements.txt** and easily installed using the "pip install requirements.txt" command in your terminal.
