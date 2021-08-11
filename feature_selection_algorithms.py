@@ -10,10 +10,7 @@ from sklearn.feature_selection import chi2, SelectFromModel, RFE, VarianceThresh
 from sklearn.inspection import permutation_importance
 from sklearn import preprocessing
 from ITMO_FS.filters.univariate import su_measure, information_gain, pearson_corr, spearman_corr, f_ratio_measure
-<<<<<<< HEAD
 from sklearn.inspection import permutation_importance
-=======
->>>>>>> 717b1594dc13179ee3f7fe8d51cf7b333d23892a
 from sklearn.model_selection import train_test_split
 
 
@@ -205,7 +202,6 @@ class FeatureSelectionAlgorithms:
                                        model,
                                        n_repeats: int,
                                        mean_remove_threshold: float,
-<<<<<<< HEAD
                                        std_remove_threshold: float):
         # Fit model
         x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=0)
@@ -215,27 +211,9 @@ class FeatureSelectionAlgorithms:
         scores = permutation_importance(fitted_model, x, y, scoring=None, n_repeats=n_repeats, n_jobs=None,
                                         random_state=None,
                                         sample_weight=None)
-
         return x[[col for idx, col in enumerate(x.columns) if (scores.importances_mean[idx] >= mean_remove_threshold and
                                                                scores.importances_std[idx] < std_remove_threshold)]]
-=======
-                                       # std_remove_threshold: float
-                                       ):
-        """
-       Return only columns with feature importance greater than "threshold".
-       :param x: feature vars
-       :param y: target var
-       :param threshold: threshold for using the feature var
-       """
->>>>>>> 717b1594dc13179ee3f7fe8d51cf7b333d23892a
-        # TODO: learn more at: https://scikit-learn.org/stable/modules/permutation_importance.html
-        X_train, X_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=0)
-        model = model.fit(X_train, y_train)
-        r = permutation_importance(model, X_val, y_val, n_repeats=n_repeats, random_state=0)
-        scores = r.importances_mean
 
-        # return only columns above threshold
-        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= mean_remove_threshold]]
 
     @staticmethod
     def relief(x, y):
