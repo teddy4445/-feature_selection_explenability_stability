@@ -2,6 +2,9 @@
 import os
 import pandas as pd
 
+# project imports
+from meta_data_table_generator import MetaDataTableGenerator
+
 
 class StabilityTestsAnalyzer:
     """
@@ -15,25 +18,29 @@ class StabilityTestsAnalyzer:
     @staticmethod
     def run(data_folder_path: str,
             results_folder_path: str):
-        mdf = pd.read_csv(summary_file_results_path)
-        ExplainablePerformancePipelineAnalyzer.analyze_1(mdf=mdf,
-                                                         answers_folder_path=answers_folder_path)
-        ExplainablePerformancePipelineAnalyzer.analyze_2(mdf=mdf,
-                                                         answers_folder_path=answers_folder_path)
-        ExplainablePerformancePipelineAnalyzer.analyze_3(mdf=mdf,
-                                                         answers_folder_path=answers_folder_path)
+        """
+        # TODO: add here later
+        """
+        # read data from meta table file
+        mdf = pd.read_csv(os.path.join(data_folder_path, MetaDataTableGenerator.FILE_NAME))
+        StabilityTestsAnalyzer.analyze_1(mdf=mdf,
+                                         results_folder_path=results_folder_path)
+        StabilityTestsAnalyzer.analyze_2(mdf=mdf,
+                                         results_folder_path=results_folder_path)
+        StabilityTestsAnalyzer.analyze_3(mdf=mdf,
+                                         results_folder_path=results_folder_path)
 
     @staticmethod
     def analyze_1(mdf,
-                  answers_folder_path: str):
+                  results_folder_path: str):
         pass
 
     @staticmethod
     def analyze_2(mdf,
-                  answers_folder_path: str):
+                  results_folder_path: str):
         pass
 
     @staticmethod
     def analyze_3(mdf,
-                  answers_folder_path: str):
+                  results_folder_path: str):
         pass

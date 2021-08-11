@@ -16,6 +16,8 @@ class MetaDataTableGenerator:
     methods and the stability of these methods.
     """
 
+    FILE_NAME = "meta_dataset.csv"
+
     METRICS = ["rosenfeld_f_metric_{}_harmonic_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]]
     METRICS.extend(["rosenfeld_f_metric_{}_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]])
 
@@ -52,7 +54,7 @@ class MetaDataTableGenerator:
         """
         # start by making sure we have the answer folder
         try:
-            os.mkdir(answer_folder_path)
+            os.mkdir(results_folder_path)
         except:
             pass
         # create empty dataset we will populate during the function
@@ -83,7 +85,7 @@ class MetaDataTableGenerator:
             # add to the global dataframe
             answer_df.append(dataset_summary_results)
         # save the results to the basic folder
-        answer_df.to_csv(os.path.join(results_folder_path, "meta_dataset.csv"))
+        answer_df.to_csv(os.path.join(results_folder_path, MetaDataTableGenerator.FILE_NAME))
 
     # HELP FUNCTIONS #
 
