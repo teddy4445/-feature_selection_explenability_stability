@@ -6,8 +6,8 @@ import pandas as pd
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import Lasso
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.feature_selection import chi2, SelectFromModel
-
+from sklearn.feature_selection import chi2, SelectFromModel, VarianceThreshold
+from sklearn import preprocessing
 from ITMO_FS.filters.univariate import su_measure, information_gain, pearson_corr, spearman_corr, f_ratio_measure
 
 
@@ -140,13 +140,29 @@ class FeatureSelectionAlgorithms:
     @staticmethod
     def remove_low_variance(x: pd.DataFrame,
                             y: Union[pd.DataFrame, pd.Series],
-                            remove_threshold: float):
+                            remove_threshold: float,
+                            is_normalized: bool = True):
         """
         Returns only features with variance greater than remove_threshold.
         :param x: feature vars
         :param y: target var
         :param remove_threshold: minimal variance required
+        :param is_normalized: use StandardScaler prior to calculation
         """
+        # Initialize estimator with required threshold
+        vt = VarianceThreshold(threshold=remove_threshold)
+
+        # Normalize if required
+        if is_normalized:
+            x_scaled = preprocessing.StandardScaler().fit_transform(x)
+            vt.fit(x_scaled)
+        else:
+            vt.fit(x)
+
+        # Return features with variance equal or greater than remove_threshold
+        mask = vt.get_support()
+        selected = x.loc[:, mask]
+        return selected
 
     @staticmethod
     def missing_value_ratio(x: pd.DataFrame,
