@@ -1,15 +1,18 @@
 import math
-from sklearn.metrics import accuracy_score, recall_score, precision_score, r2_score
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.metrics import accuracy_score, recall_score, precision_score, r2_score
 
 
-class ExplainabilityMetrices:
+class ExplainablePerformanceMetrics:
     """
     A list of explainable metrics
     """
+
+    def __init__(self):
+        pass
 
     # COMBINED METRICS #
 
@@ -58,7 +61,7 @@ class ExplainabilityMetrices:
     @staticmethod
     def rosenfeld_r_metric(model):
         if type(model) in [DecisionTreeRegressor, DecisionTreeClassifier]:
-            return ExplainabilityMetrices._get_tree_rules_count(tree=model)
+            return ExplainablePerformanceMetrics._get_tree_rules_count(tree=model)
         elif type(model) in [KNeighborsClassifier]:
             return model.n_neighbors
         elif type(model) in [LogisticRegression, LinearRegression]:
@@ -106,7 +109,16 @@ class ExplainabilityMetrices:
 
     @staticmethod
     def _get_tree_rules_count(tree):
+        """
+        Rules are the number of nodes without the leaves nodes
+        as the leaves nodes are the classes and not classification rules
+        """
         return tree.tree_.node_count - tree.tree_.n_leaves
-        # TODO: implement this function
 
     # END - HELP FUNCTIONS #
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "<ExplainablePerformanceMetrics>"

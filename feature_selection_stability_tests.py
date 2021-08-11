@@ -14,6 +14,9 @@ class FeatureSelectionStabilityTests:
 
     # PROPOSED METRICS #
 
+    def __init__(self):
+        pass
+
     @staticmethod
     def data_stability_test(data,
                             feature_selection_method,
@@ -152,3 +155,9 @@ class FeatureSelectionStabilityTests:
                 [raw_data_file.write("{},{}\n".format(index, scores[index - 1])) for index in range(1, x_size + 1)]
 
     # END - HELP FUNCTIONS #
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "<FeatureSelectionStabilityTests>"

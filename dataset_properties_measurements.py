@@ -20,6 +20,9 @@ class DatasetPropertiesMeasurements:
     IS_DEBUG = False
     # end - consts #
 
+    def __init__(self):
+        pass
+
     @staticmethod
     def get_columns():
         """
@@ -117,7 +120,6 @@ class DatasetPropertiesMeasurements:
         # Idea from (Engels and Theusinger 1998)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.col_numerical_count running")
-        data_size = len(list(dataset.iloc[0]))
         return len([1 for column in list(dataset) if dataset[column].nunique() > max_values])
 
     @staticmethod
@@ -147,7 +149,7 @@ class DatasetPropertiesMeasurements:
         """
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_linearly_to_target running")
-        return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
+        return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1]**2
                         for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
 
     @staticmethod
@@ -266,3 +268,9 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_entropy_of_features running")
         return np.std([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "<DatasetPropertiesMeasurements>"

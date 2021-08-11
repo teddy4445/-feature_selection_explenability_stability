@@ -25,25 +25,27 @@ class MetaDataTableGenerator:
 
     STABILITY_METRICS = ["iou"]
 
-    FS_FILTER = ["chi2",
+    FS_FILTER = ["chi_square",
                  "symmetrical_uncertainty",
-                 "relief",
                  "information_gain",
-                 "support_vector_machines_recursive_feature_elimination",
                  "pearson_correlation",
+                 "spearman_correlation",
                  "remove_low_variance",
                  "missing_value_ratio",
                  "fishers_score",
-                 "mutual_information",
-                 "permutation_feature_importance"]
+                 "permutation_feature_importance",
+                 "support_vector_machines_recursive_feature_elimination"]
 
     FS_EMBEDDING = ["dt",
                     "lasso",
                     "linearSVC"]
 
+    def __init__(self):
+        pass
+
     @staticmethod
     def run(data_folder_path: str,
-            answer_folder_path: str):
+            results_folder_path: str):
         """
         data_folder_path: is the path to the folder with all the data
         answer_folder_path: is the path to the folder we wish to write our results to
@@ -55,10 +57,10 @@ class MetaDataTableGenerator:
             pass
         # create empty dataset we will populate during the function
         answer_df = pd.DataFrame(data=None, columns=MetaDataTableGenerator.prepare_columns())
-        # if we wish to see debuging
+        # if we wish to see debugging
         DatasetPropertiesMeasurements.IS_DEBUG = True
         for path in glob.glob(os.path.join(data_folder_path, "*")):
-            # print the file name if debuging mood
+            # print the file name if debugging mood
             if DatasetPropertiesMeasurements.IS_DEBUG:
                 print("\n\nMetaDataTableGenerator: Working on file {}".format(path))
             # get file's data
@@ -81,7 +83,7 @@ class MetaDataTableGenerator:
             # add to the global dataframe
             answer_df.append(dataset_summary_results)
         # save the results to the basic folder
-        answer_df.to_csv(os.path.join(data_folder_path, "meta_dataset.csv"))
+        answer_df.to_csv(os.path.join(results_folder_path, "meta_dataset.csv"))
 
     # HELP FUNCTIONS #
 
@@ -138,7 +140,13 @@ class MetaDataTableGenerator:
 
     # END - HELP FUNCTIONS #
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "<MetaDataTableGenerator>"
+
 
 if __name__ == '__main__':
     MetaDataTableGenerator.run(data_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed"),
-                               answer_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data"))
+                               results_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data"))

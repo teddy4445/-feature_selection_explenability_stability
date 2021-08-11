@@ -1,17 +1,15 @@
 # library imports
-from typing import Union
-
 import numpy as np
 import pandas as pd
-from sklearn.svm import LinearSVC, SVC, SVR
-from sklearn.linear_model import Lasso
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.feature_selection import chi2, SelectFromModel, RFE, VarianceThreshold
-from sklearn.inspection import permutation_importance
+from typing import Union
 from sklearn import preprocessing
-from ITMO_FS.filters.univariate import su_measure, information_gain, pearson_corr, spearman_corr, f_ratio_measure
-from sklearn.inspection import permutation_importance
+from sklearn.linear_model import Lasso
+from sklearn.svm import LinearSVC, SVC, SVR
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.inspection import permutation_importance
+from sklearn.feature_selection import chi2, SelectFromModel, RFE, VarianceThreshold
+from ITMO_FS.filters.univariate import su_measure, information_gain, pearson_corr, spearman_corr, f_ratio_measure
 
 
 class FeatureSelectionAlgorithms:
@@ -19,7 +17,14 @@ class FeatureSelectionAlgorithms:
     A collection of feature selection algorithms
     """
 
+    # CONSTS #
+    RANDOM_STATE = 73
+    # END - CONSTS #
+
     ### EMBEDDING ###
+
+    def __init__(self):
+        pass
 
     @staticmethod
     def decision_tree(x: pd.DataFrame,
@@ -39,7 +44,9 @@ class FeatureSelectionAlgorithms:
     @staticmethod
     def linear_svc(x: pd.DataFrame,
                    y: Union[pd.DataFrame, pd.Series]):
-        # TODO: think on a good definition here
+        """
+        # TODO: add here later
+        """
         lsvc = LinearSVC(penalty="l1", dual=False).fit(x, y)
         model = SelectFromModel(lsvc, prefit=True)
         return list(model.transform(x))
@@ -82,9 +89,8 @@ class FeatureSelectionAlgorithms:
         """
         # get scores for SU
         scores = su_measure(x, y)
-
         # return only columns above threshold
-        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
+        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
 
     @staticmethod
     def information_gain(x: pd.DataFrame,
@@ -98,9 +104,8 @@ class FeatureSelectionAlgorithms:
         """
         # get scores for IG
         scores = information_gain(x, y)
-
         # return only columns above threshold
-        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
+        return x[[col for index, col in enumerate(x.columns) if scores[idx] >= threshold]]
 
     @staticmethod
     def pearson_correlation(x: pd.DataFrame,
@@ -114,12 +119,8 @@ class FeatureSelectionAlgorithms:
         """
         # get Pearson correlation scores
         scores = pearson_corr(x, y)
-
-        # set threshold according to the top_k parameter
-        # threshold = sorted(scores, reverse=True)[min(top_k - 1, len(scores) - 1)]
-
         # return only top_k features (above threshold)
-        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
+        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
 
     @staticmethod
     def spearman_correlation(x: pd.DataFrame,
@@ -133,12 +134,8 @@ class FeatureSelectionAlgorithms:
         """
         # get Pearson correlation scores
         scores = spearman_corr(x, y)
-
-        # set threshold according to the top_k parameter
-        # threshold = sorted(scores, reverse=True)[min(top_k - 1, len(scores) - 1)]
-
         # return only top_k features (above threshold)
-        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
+        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
 
     @staticmethod
     def remove_low_variance(x: pd.DataFrame,
@@ -154,14 +151,12 @@ class FeatureSelectionAlgorithms:
         """
         # Initialize estimator with required threshold
         vt = VarianceThreshold(threshold=remove_threshold)
-
         # Normalize if required
         if is_normalized:
             x_scaled = preprocessing.StandardScaler().fit_transform(x)
             vt.fit(x_scaled)
         else:
             vt.fit(x)
-
         # Return features with variance equal or greater than remove_threshold
         mask = vt.get_support()
         selected = x.loc[:, mask]
@@ -178,7 +173,7 @@ class FeatureSelectionAlgorithms:
         :param remove_threshold: maximal ratio of missing values [0 to 1]
         """
         missing_value_ratio = x.isna().mean(axis=0)
-        return x[[col for idx, col in enumerate(x.columns) if missing_value_ratio[idx] <= remove_threshold]]
+        return x[[col for index, col in enumerate(x.columns) if missing_value_ratio[index] <= remove_threshold]]
 
     @staticmethod
     def fishers_score(x: pd.DataFrame,
@@ -192,9 +187,8 @@ class FeatureSelectionAlgorithms:
         """
         # get Fisher's scores
         scores = f_ratio_measure(x, y)
-
         # return only columns above threshold
-        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
+        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
 
     @staticmethod
     def permutation_feature_importance(x: pd.DataFrame,
@@ -203,26 +197,23 @@ class FeatureSelectionAlgorithms:
                                        n_repeats: int,
                                        mean_remove_threshold: float,
                                        std_remove_threshold: float):
+        """
+        # TODO: add here later
+        """
         # Fit model
-        x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=0)
+        x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=FeatureSelectionAlgorithms.RANDOM_STATE)
         fitted_model = model.fit(x_train, y_train)
 
         # Get importances mean and std
-        scores = permutation_importance(fitted_model, x, y, scoring=None, n_repeats=n_repeats, n_jobs=None,
-                                        random_state=None,
+        scores = permutation_importance(fitted_model,
+                                        x,
+                                        y,
+                                        scoring=None,
+                                        n_repeats=n_repeats,
+                                        random_state=FeatureSelectionAlgorithms.RANDOM_STATE,
                                         sample_weight=None)
-        return x[[col for idx, col in enumerate(x.columns) if (scores.importances_mean[idx] >= mean_remove_threshold and
-                                                               scores.importances_std[idx] < std_remove_threshold)]]
-
-
-    @staticmethod
-    def relief(x, y):
-        # TODO: do you mean STIR algorithm? reliefF?
-
-        stir = STIR(top_k)
-        trX = stir.fit_transform(x, y)
-        # TODO: trX to pd.DataFrame?
-        return None
+        return x[[col for index, col in enumerate(x.columns) if (scores.importances_mean[index] >= mean_remove_threshold and
+                                                                 scores.importances_std[index] < std_remove_threshold)]]
 
     @staticmethod
     def support_vector_machines_recursive_feature_elimination(x: pd.DataFrame,
@@ -238,9 +229,7 @@ class FeatureSelectionAlgorithms:
         :param top_k: number of features to return
         :param kernel: kernel to use in the SVM
         """
-        estimator = SVC(kernel=kernel)
-        selector = RFE(estimator, n_features_to_select=top_k, step=1)
-        return selector.transform(x)
+        return RFE(SVC(kernel=kernel), n_features_to_select=top_k, step=1).transform(x)
 
     # SAME NAME CALLS #
 
@@ -262,3 +251,9 @@ class FeatureSelectionAlgorithms:
     # END - SAME NAME CALLS #
 
     ### END - FILTER ###
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "<FeatureSelectionAlgorithms>"

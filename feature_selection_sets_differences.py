@@ -8,6 +8,9 @@ class FeatureSelectionSetsDifferences:
     A collection of feature sets distances
     """
 
+    def __init__(self):
+        pass
+
     # Generalized to list of features rather than pair #
 
     @staticmethod
@@ -62,3 +65,9 @@ class FeatureSelectionSetsDifferences:
             raise Exception("Both original and new feature sets are empty, cannot compute the tanimoto distance metric")
         return (len(original_set) + len(new_set) - 2 * len(list(set(original_set).intersection(set(new_set))))) \
                / (len(original_set) + len(new_set) - len(list(set(original_set).union(set(new_set)))))
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "<FeatureSelectionSetsDifferences>"

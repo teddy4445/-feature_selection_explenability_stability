@@ -28,6 +28,9 @@ ADD HERE LATER.
 4. Run the '**meta_data_table_generator.py**' file (python meta_data_table_generator.py or python3 meta_data_table_generator.py)
 5. run the project from the **main.py** file (python main.py or python3 main.py)
 
+Note: while installing the dependances, you may have error when using Windows OS.
+It happens when trying to install **ITMO-FS==0.3.3**. Just download and install first the build tools from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
 <a name="data"/>
 
 ## Data 
