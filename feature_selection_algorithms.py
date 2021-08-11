@@ -9,6 +9,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import chi2, SelectFromModel, VarianceThreshold
 from sklearn import preprocessing
 from ITMO_FS.filters.univariate import su_measure, information_gain, pearson_corr, spearman_corr, f_ratio_measure
+from sklearn.inspection import permutation_importance
+from sklearn.model_selection import train_test_split
 
 
 class FeatureSelectionAlgorithms:
@@ -204,7 +206,17 @@ class FeatureSelectionAlgorithms:
                                        n_repeats: int,
                                        mean_remove_threshold: float,
                                        std_remove_threshold: float):
-        pass
+        # Fit model
+        x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=0)
+        fitted_model = model.fit(x_train, y_train)
+
+        # Get importances mean and std
+        scores = permutation_importance(fitted_model, x, y, scoring=None, n_repeats=n_repeats, n_jobs=None,
+                                        random_state=None,
+                                        sample_weight=None)
+
+        return x[[col for idx, col in enumerate(x.columns) if (scores.importances_mean[idx] >= mean_remove_threshold and
+                                                               scores.importances_std[idx] < std_remove_threshold)]]
         # TODO: learn more at: https://scikit-learn.org/stable/modules/permutation_importance.html
 
     @staticmethod
