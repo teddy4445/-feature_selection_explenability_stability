@@ -3,13 +3,17 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC, SVR
 from sklearn.linear_model import Lasso
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.feature_selection import chi2, SelectFromModel, VarianceThreshold
+from sklearn.feature_selection import chi2, SelectFromModel, RFE, VarianceThreshold
+from sklearn.inspection import permutation_importance
 from sklearn import preprocessing
 from ITMO_FS.filters.univariate import su_measure, information_gain, pearson_corr, spearman_corr, f_ratio_measure
+<<<<<<< HEAD
 from sklearn.inspection import permutation_importance
+=======
+>>>>>>> 717b1594dc13179ee3f7fe8d51cf7b333d23892a
 from sklearn.model_selection import train_test_split
 
 
@@ -104,18 +108,18 @@ class FeatureSelectionAlgorithms:
     @staticmethod
     def pearson_correlation(x: pd.DataFrame,
                             y: Union[pd.DataFrame, pd.Series],
-                            top_k: int = 10):
+                            threshold: float = 0):
         """
         Return only the k features with the highest Pearson Correlation (related to the targets).
         :param x: feature vars
         :param y: target var
-        :param top_k: number of features to select
+        :param threshold: threshold for using the feature
         """
         # get Pearson correlation scores
         scores = pearson_corr(x, y)
 
         # set threshold according to the top_k parameter
-        threshold = sorted(scores, reverse=True)[min(top_k - 1, len(scores) - 1)]
+        # threshold = sorted(scores, reverse=True)[min(top_k - 1, len(scores) - 1)]
 
         # return only top_k features (above threshold)
         return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
@@ -123,18 +127,18 @@ class FeatureSelectionAlgorithms:
     @staticmethod
     def spearman_correlation(x: pd.DataFrame,
                              y: Union[pd.DataFrame, pd.Series],
-                             top_k: int = 10):
+                             threshold: float = 0):
         """
         Return only the k features with the highest Spearman Correlation (related to the targets).
         :param x: feature vars
         :param y: target var
-        :param top_k: number of features to select
+        :param threshold: threshold for using the feature
         """
         # get Pearson correlation scores
         scores = spearman_corr(x, y)
 
         # set threshold according to the top_k parameter
-        threshold = sorted(scores, reverse=True)[min(top_k - 1, len(scores) - 1)]
+        # threshold = sorted(scores, reverse=True)[min(top_k - 1, len(scores) - 1)]
 
         # return only top_k features (above threshold)
         return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
@@ -196,15 +200,12 @@ class FeatureSelectionAlgorithms:
         return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= threshold]]
 
     @staticmethod
-    def mutual_information(x, y):
-        # TODO: isn't it exactly like information gain?
-        pass
-
-    @staticmethod
-    def permutation_feature_importance(x, y,
+    def permutation_feature_importance(x: pd.DataFrame,
+                                       y: Union[pd.DataFrame, pd.Series],
                                        model,
                                        n_repeats: int,
                                        mean_remove_threshold: float,
+<<<<<<< HEAD
                                        std_remove_threshold: float):
         # Fit model
         x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=0)
@@ -217,7 +218,24 @@ class FeatureSelectionAlgorithms:
 
         return x[[col for idx, col in enumerate(x.columns) if (scores.importances_mean[idx] >= mean_remove_threshold and
                                                                scores.importances_std[idx] < std_remove_threshold)]]
+=======
+                                       # std_remove_threshold: float
+                                       ):
+        """
+       Return only columns with feature importance greater than "threshold".
+       :param x: feature vars
+       :param y: target var
+       :param threshold: threshold for using the feature var
+       """
+>>>>>>> 717b1594dc13179ee3f7fe8d51cf7b333d23892a
         # TODO: learn more at: https://scikit-learn.org/stable/modules/permutation_importance.html
+        X_train, X_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=0)
+        model = model.fit(X_train, y_train)
+        r = permutation_importance(model, X_val, y_val, n_repeats=n_repeats, random_state=0)
+        scores = r.importances_mean
+
+        # return only columns above threshold
+        return x[[col for idx, col in enumerate(x.columns) if scores[idx] >= mean_remove_threshold]]
 
     @staticmethod
     def relief(x, y):
@@ -229,12 +247,22 @@ class FeatureSelectionAlgorithms:
         return None
 
     @staticmethod
-    def support_vector_machines_recursive_feature_elimination(x, y):
+    def support_vector_machines_recursive_feature_elimination(x: pd.DataFrame,
+                                                              y: Union[pd.DataFrame, pd.Series],
+                                                              top_k: int = 10,
+                                                              kernel="linear"):
         """
         From: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-018-2451-4
         Sanz, H., Valim, C., Vegas, E., Oller, J. M., Reverter, F., SVM-RFE: selection and visualization of the most relevant features through non-linear kernels, BMC bioinformatics, 2018.
+        Return the top_k important features after performing SVM recursively.
+        :param x: feature vars
+        :param y: target var
+        :param top_k: number of features to return
+        :param kernel: kernel to use in the SVM
         """
-        pass
+        estimator = SVC(kernel=kernel)
+        selector = RFE(estimator, n_features_to_select=top_k, step=1)
+        return selector.transform(x)
 
     # SAME NAME CALLS #
 
