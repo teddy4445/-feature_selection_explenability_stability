@@ -17,10 +17,14 @@ class MetaDataTableGenerator:
     """
 
     METRICS = ["rosenfeld_f_metric_{}_harmonic_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]]
+    METRICS.extend(["rosenfeld_f_metric_{}_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]])
+
     STABILITY_TESTS = ["data",
                        "features",
                        "lyapunov"]
+
     STABILITY_METRICS = ["iou"]
+
     FS_FILTER = ["chi2",
                  "symmetrical_uncertainty",
                  "relief",
@@ -32,6 +36,7 @@ class MetaDataTableGenerator:
                  "fishers_score",
                  "mutual_information",
                  "permutation_feature_importance"]
+
     FS_EMBEDDING = ["dt",
                     "lasso",
                     "linearSVC"]
