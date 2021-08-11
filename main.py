@@ -12,7 +12,7 @@ class Main:
     """
 
     RESULTS_FOLDER_NAME = "results"
-    DATA_FOLDER_NAME = "data"
+    DATA_FOLDER_NAME = "data_fixed"
 
     DATA_FOLDER = os.path.join(os.path.dirname(__file__), DATA_FOLDER_NAME)
     RESULTS_FOLDER = os.path.join(os.path.dirname(__file__), RESULTS_FOLDER_NAME)
