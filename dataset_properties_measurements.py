@@ -120,7 +120,10 @@ class DatasetPropertiesMeasurements:
         # Idea from (Engels and Theusinger 1998)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.col_numerical_count running")
-        return len([1 for column in list(dataset) if dataset[column].nunique() > max_values])
+        try:
+            return len([1 for column in list(dataset) if dataset[column].nunique() > max_values])
+        except:
+            return np.nan
 
     @staticmethod
     def col_categorical_count(dataset: pd.DataFrame,
@@ -133,14 +136,20 @@ class DatasetPropertiesMeasurements:
         # Idea from (Engels and Theusinger 1998)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.col_categorical_count running")
-        return len(list(dataset)) - DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset,
-                                                                                      max_values=max_values)
+        try:
+            return len(list(dataset)) - DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset,
+                                                                                          max_values=max_values)
+        except:
+            return np.nan
 
     @staticmethod
     def classes_count(dataset: pd.DataFrame):
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.classes_count running")
-        return dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME].nunique()
+        try:
+            return dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME].nunique()
+        except:
+            return np.nan
 
     @staticmethod
     def average_linearly_to_target(dataset: pd.DataFrame):
@@ -149,8 +158,11 @@ class DatasetPropertiesMeasurements:
         """
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_linearly_to_target running")
-        return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1]**2
-                        for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
+        try:
+            return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1]**2
+                            for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
+        except:
+            return np.nan
 
     @staticmethod
     def std_linearly_to_target(dataset: pd.DataFrame):
@@ -159,8 +171,11 @@ class DatasetPropertiesMeasurements:
         """
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_linearly_to_target running")
-        return np.std([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
-                       for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
+        try:
+            return np.std([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
+                           for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
+        except:
+            return np.nan
 
     @staticmethod
     def cancor(dataset: pd.DataFrame):
@@ -169,10 +184,13 @@ class DatasetPropertiesMeasurements:
         """
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.cancor running")
-        cca = CCA(n_components=1)
-        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
-        Uc, Vc = cca.fit_transform(x, dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])
-        return np.corrcoef(Uc.T, Vc.T)[0, 1]
+        try:
+            cca = CCA(n_components=1)
+            x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
+            Uc, Vc = cca.fit_transform(x, dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])
+            return np.corrcoef(Uc.T, Vc.T)[0, 1]
+        except:
+            return np.nan
 
     @staticmethod
     def kurtosis(dataset: pd.DataFrame):
@@ -181,8 +199,11 @@ class DatasetPropertiesMeasurements:
         """
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.kurtosis running")
-        x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
-        return np.mean([scipy.stats.kurtosis(x[column]) for column in list(x)])
+        try:
+            x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
+            return np.mean([scipy.stats.kurtosis(x[column]) for column in list(x)])
+        except:
+            return np.nan
 
     @staticmethod
     def average_asymmetry_of_features(dataset: pd.DataFrame):
@@ -192,7 +213,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_asymmetry_of_features running")
-        return 3 * sum([(np.mean(dataset[column]) - np.median(dataset[column]))/np.std(dataset[column]) for column in list(dataset)]) / len(list(dataset))
+        try:
+            return 3 * sum([(np.mean(dataset[column]) - np.median(dataset[column]))/np.std(dataset[column]) for column in list(dataset)]) / len(list(dataset))
+        except:
+            return np.nan
 
     @staticmethod
     def average_correlation_between_features(dataset: pd.DataFrame):
@@ -202,12 +226,15 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_correlation_between_features running")
-        n = len(list(dataset))
-        cols = list(dataset)
-        return 2 * sum([sum([scipy.stats.pearsonr(dataset[cols[column_i]],
-                                                  dataset[cols[column_j]])[0]
-                             for column_j in range(column_i + 1, len(cols))])
-                        for column_i in range(len(cols)-1)]) / (n * (n-1))
+        try:
+            n = len(list(dataset))
+            cols = list(dataset)
+            return 2 * sum([sum([scipy.stats.pearsonr(dataset[cols[column_i]],
+                                                      dataset[cols[column_j]])[0]
+                                 for column_j in range(column_i + 1, len(cols))])
+                            for column_i in range(len(cols)-1)]) / (n * (n-1))
+        except:
+            return np.nan
 
     @staticmethod
     def average_coefficient_of_variation_of_feature(dataset: pd.DataFrame):
@@ -217,7 +244,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_coefficient_of_variation_of_feature running")
-        return np.mean([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+        try:
+            return np.mean([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+        except:
+            return np.nan
 
     @staticmethod
     def std_coefficient_of_variation_of_feature(dataset: pd.DataFrame):
@@ -227,7 +257,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_coefficient_of_variation_of_feature running")
-        return np.std([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+        try:
+            return np.std([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+        except:
+            return np.nan
 
     @staticmethod
     def average_coefficient_of_anomaly(dataset: pd.DataFrame):
@@ -237,7 +270,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_coefficient_of_anomaly running")
-        return np.mean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+        try:
+            return np.mean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+        except:
+            return np.nan
 
     @staticmethod
     def std_coefficient_of_anomaly(dataset: pd.DataFrame):
@@ -247,7 +283,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_coefficient_of_anomaly running")
-        return np.std([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+        try:
+            return np.std([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+        except:
+            return np.nan
 
     @staticmethod
     def average_entropy_of_features(dataset: pd.DataFrame):
@@ -257,7 +296,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_entropy_of_features running")
-        return np.mean([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+        try:
+            return np.mean([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+        except:
+            return np.nan
 
     @staticmethod
     def std_entropy_of_features(dataset: pd.DataFrame):
@@ -267,7 +309,10 @@ class DatasetPropertiesMeasurements:
         # idea from (Shen et al., 2020)
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_entropy_of_features running")
-        return np.std([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+        try:
+            return np.std([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+        except:
+            return np.nan
 
     def __repr__(self):
         return self.__str__()

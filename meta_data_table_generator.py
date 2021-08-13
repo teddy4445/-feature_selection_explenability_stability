@@ -58,7 +58,9 @@ class MetaDataTableGenerator:
         except:
             pass
         # create empty dataset we will populate during the function
-        answer_df = pd.DataFrame(data=None, columns=MetaDataTableGenerator.prepare_columns())
+        cols = MetaDataTableGenerator.prepare_columns()
+        answer_df = pd.DataFrame(data=None,
+                                 columns=cols)
         # if we wish to see debugging
         DatasetPropertiesMeasurements.IS_DEBUG = True
         for path in glob.glob(os.path.join(data_folder_path, "*")):
@@ -83,7 +85,8 @@ class MetaDataTableGenerator:
                                                                                              dataset_name=dataset_name)
 
             # add to the global dataframe
-            answer_df.append(dataset_summary_results)
+            for index, col in enumerate(cols):
+                answer_df[col](dataset_summary_results[index])
         # save the results to the basic folder
         answer_df.to_csv(os.path.join(results_folder_path, MetaDataTableGenerator.FILE_NAME))
 

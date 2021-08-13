@@ -27,10 +27,9 @@ class ExplainablePerformancePipelineAnalyzer:
 
         ExplainablePerformancePipelineAnalyzer.divide_mdf_by_metric(mdf=mdf,
                                                                     results_folder_path=results_folder_path)
-        ExplainablePerformancePipelineAnalyzer.analyze_2(mdf=mdf,
-                                                         results_folder_path=results_folder_path)
-        ExplainablePerformancePipelineAnalyzer.analyze_3(mdf=mdf,
-                                                         results_folder_path=results_folder_path)
+        ExplainablePerformancePipelineAnalyzer.index_all_classes_of_pairs_of_fs(mdf=mdf)
+        ExplainablePerformancePipelineAnalyzer.train_and_test_local_classifier(mdf=mdf,
+                                                                               results_folder_path=results_folder_path)
 
     @staticmethod
     def divide_mdf_by_metric(mdf,
