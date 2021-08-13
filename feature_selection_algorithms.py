@@ -28,28 +28,48 @@ class FeatureSelectionAlgorithms:
 
     @staticmethod
     def decision_tree(x: pd.DataFrame,
-                      y: Union[pd.DataFrame, pd.Series]):
-        return SelectFromModel(DecisionTreeClassifier().fit(x, y), prefit=True).transform(x)
+                      y: Union[pd.DataFrame, pd.Series],
+                      return_model: bool = True):
+        """
+        # TODO: add here later
+        """
+        model = DecisionTreeClassifier().fit(x, y)
+        cols = SelectFromModel(model, prefit=True).transform(x)
+        if return_model:
+            return cols, model
+        return cols
 
     @staticmethod
     def lasso(x: pd.DataFrame,
-              y: Union[pd.DataFrame, pd.Series]):
+              y: Union[pd.DataFrame, pd.Series],
+              return_model: bool = True):
+        """
+        # TODO: add here later
+        """
         features = list(x)
         model = Lasso()
         model.fit(x, y)
         coefficients = model.named_steps['model'].coef_
         importance = np.abs(coefficients)
-        return list(np.array(features)[importance > 0])
+        cols = list(np.array(features)[importance > 0])
+        if return_model:
+            return cols, model
+        return cols
+
 
     @staticmethod
     def linear_svc(x: pd.DataFrame,
-                   y: Union[pd.DataFrame, pd.Series]):
+                   y: Union[pd.DataFrame, pd.Series],
+                   return_model: bool = True):
         """
         # TODO: add here later
         """
         lsvc = LinearSVC(penalty="l1", dual=False).fit(x, y)
         model = SelectFromModel(lsvc, prefit=True)
-        return list(model.transform(x))
+        cols = list(model.transform(x))
+        if return_model:
+            return cols, model
+        return cols
 
     ### END - EMBEDDING ###
 
@@ -165,12 +185,12 @@ class FeatureSelectionAlgorithms:
     @staticmethod
     def missing_value_ratio(x: pd.DataFrame,
                             y: Union[pd.DataFrame, pd.Series],
-                            remove_threshold: float):
+                            remove_threshold: float = 0.05):
         """
         Returns only features with number of missing values lower than remove_threshold.
         :param x: feature vars
         :param y: target var
-        :param remove_threshold: maximal ratio of missing values [0 to 1]
+        :param remove_threshold: maximal ratio of missing values [0 to 1] (default = 0.05)
         """
         missing_value_ratio = x.isna().mean(axis=0)
         return x[[col for index, col in enumerate(x.columns) if missing_value_ratio[index] <= remove_threshold]]

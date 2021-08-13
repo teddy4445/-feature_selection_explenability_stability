@@ -4,6 +4,7 @@ import glob
 import pandas as pd
 
 # project imports
+from funcsions_mapper import FunctionsMapper
 from feature_selection_algorithms import FeatureSelectionAlgorithms
 from dataset_properties_measurements import DatasetPropertiesMeasurements
 from feature_selection_stability_tests import FeatureSelectionStabilityTests
@@ -18,8 +19,8 @@ class MetaDataTableGenerator:
 
     FILE_NAME = "meta_dataset.csv"
 
-    METRICS = ["rosenfeld_f_metric_{}_harmonic_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]]
-    METRICS.extend(["rosenfeld_f_metric_{}_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]])
+    METRICS = ["rosenfeld_f_metric__{}__harmonic_mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]]
+    METRICS.extend(["rosenfeld_f_metric__{}__mean".format(value) for value in ["accuracy", "recall", "precision", "r2"]])
 
     STABILITY_TESTS = ["data",
                        "features",
@@ -38,9 +39,9 @@ class MetaDataTableGenerator:
                  "permutation_feature_importance",
                  "support_vector_machines_recursive_feature_elimination"]
 
-    FS_EMBEDDING = ["dt",
+    FS_EMBEDDING = ["decision_tree",
                     "lasso",
-                    "linearSVC"]
+                    "linear_svc"]
 
     def __init__(self):
         pass
@@ -71,15 +72,6 @@ class MetaDataTableGenerator:
             dataset = pd.read_csv(path)
             # get its name
             dataset_name = os.path.basename(path)
-
-            """
-            # save this dataset raw results in its folder
-            try:
-                os.mkdir(os.path.join(answer_folder_path, dataset_name))
-            except:
-                pass
-            """
-
             # calculate the data's vector
             dataset_summary_results = MetaDataTableGenerator.calculate_single_dataset_vector(dataset=dataset,
                                                                                              dataset_name=dataset_name)
@@ -99,19 +91,19 @@ class MetaDataTableGenerator:
         """
         columns = ["ds_name"]
         # get the "X" columns
-        columns.extend(["x_{}".format(col_name) for col_name in DatasetPropertiesMeasurements.get_columns()])
+        columns.extend(["x-{}".format(col_name) for col_name in DatasetPropertiesMeasurements.get_columns()])
         # get the FS filter + FS embedding + metrics
         for metric in MetaDataTableGenerator.METRICS:
             for fs_filter in MetaDataTableGenerator.FS_FILTER:
                 for fs_embedding in MetaDataTableGenerator.FS_EMBEDDING:
-                    columns.append("expandability_{}_{}_{}".format(metric,
+                    columns.append("expandability-{}-{}-{}".format(metric,
                                                                    fs_filter,
                                                                    fs_embedding))
         # get the FS filter + stability test + stability metric
         for stability_metric in MetaDataTableGenerator.STABILITY_METRICS:
             for fs_filter in MetaDataTableGenerator.FS_FILTER:
                 for stability_test in MetaDataTableGenerator.STABILITY_TESTS:
-                    columns.append("stability_{}_{}_{}".format(stability_metric,
+                    columns.append("stability-{}-{}-{}".format(stability_metric,
                                                                fs_filter,
                                                                stability_test))
         return columns
@@ -127,19 +119,31 @@ class MetaDataTableGenerator:
         # perform all the needed tests and experiments on this dataset
         dataset_summary_results.extend(DatasetPropertiesMeasurements.get_dataset_profile_vector(dataset=dataset))
 
+        # TODO: move this magic word outside
+        x = dataset.drop("target")
+        y = dataset["target"]
+
         # columns for the expandability feature selection
         for metric in MetaDataTableGenerator.METRICS:
             for fs_filter in MetaDataTableGenerator.FS_FILTER:
                 for fs_embedding in MetaDataTableGenerator.FS_EMBEDDING:
-                    # TODO: finish here
-                    dataset_summary_results.append(1)
+                    col_value = FunctionsMapper.run_explainablity_column(metric=metric,
+                                                                         fs_filter=fs_filter,
+                                                                         fs_embedding=fs_embedding,
+                                                                         x=x,
+                                                                         y=y)
+                    dataset_summary_results.append(col_value)
 
         # columns for the stability feature selection
         for stability_metric in MetaDataTableGenerator.STABILITY_METRICS:
             for fs_filter in MetaDataTableGenerator.FS_FILTER:
                 for stability_test in MetaDataTableGenerator.STABILITY_TESTS:
-                    # TODO: finish here
-                    dataset_summary_results.append(1)
+                    col_value = FunctionsMapper.run_stability_column(stability_metric=stability_metric,
+                                                                     fs_filter=fs_filter,
+                                                                     stability_test=stability_test,
+                                                                     x=x,
+                                                                     y=y)
+                    dataset_summary_results.append(col_value)
         # return answer
         return dataset_summary_results
 

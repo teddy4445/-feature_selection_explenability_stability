@@ -101,8 +101,11 @@ class FeatureSelectionStabilityTests:
                 test_dataset = data[list(data)[:up_to_feature_index]].iloc[:chunk_index * chunk_size]
                 feature_sets.append(feature_selection_method(test_dataset))
 
-
         # save results if asked
+        FeatureSelectionStabilityTests._save_plot_raw_data(save_test_raw_data=save_test_raw_data,
+                                                           save_test_plot=save_test_plot,
+                                                           scores=scores,
+                                                           x_size=len(data))
 
         # return the scores to the caller
         return scores

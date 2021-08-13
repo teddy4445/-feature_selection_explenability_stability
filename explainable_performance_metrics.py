@@ -17,12 +17,12 @@ class ExplainablePerformanceMetrics:
     # COMBINED METRICS #
 
     @staticmethod
-    def performance_explainability_harmonic_mean(data,
-                                                 y_true,
-                                                 y_pred,
-                                                 performance_metric,
-                                                 explainability_metric,
-                                                 beta: float = 1):
+    def harmonic_mean(data,
+                      y_true,
+                      y_pred,
+                      performance_metric,
+                      explainability_metric,
+                      beta: float = 1):
         """
         F_{beta} score of the explainability and performance metric
         """
@@ -31,11 +31,11 @@ class ExplainablePerformanceMetrics:
         return (1 + beta * beta) * per_score * exp_score / (beta * beta * per_score + exp_score)
 
     @staticmethod
-    def performance_explainability_mean(y_true,
-                                        y_pred,
-                                        performance_metric,
-                                        explainability_metric,
-                                        beta: float = 0.5):
+    def mean(y_true,
+             y_pred,
+             performance_metric,
+             explainability_metric,
+             beta: float = 0.5):
         """
         Weighted average of the explainability and performance metric
         """
@@ -49,7 +49,7 @@ class ExplainablePerformanceMetrics:
 
     @staticmethod
     def rosenfeld_f_metric(data):
-        return len(list(data))-1
+        return len(list(data))
 
     @staticmethod
     def rosenfeld_d_metric(y_true,
