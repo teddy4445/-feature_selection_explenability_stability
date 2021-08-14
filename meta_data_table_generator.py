@@ -63,6 +63,7 @@ class MetaDataTableGenerator:
                                  columns=cols)
         # if we wish to see debugging
         DatasetPropertiesMeasurements.IS_DEBUG = True
+        file_index = 1
         for path in glob.glob(os.path.join(data_folder_path, "*")):
             # print the file name if debugging mood
             if DatasetPropertiesMeasurements.IS_DEBUG:
@@ -78,6 +79,8 @@ class MetaDataTableGenerator:
             # add to the global dataframe
             for index, col in enumerate(cols):
                 answer_df[col](dataset_summary_results[index])
+            answer_df.to_csv(os.path.join(results_folder_path, "temp_{}_{}".format(file_index, MetaDataTableGenerator.FILE_NAME)))
+            file_index += 1
         # save the results to the basic folder
         answer_df.to_csv(os.path.join(results_folder_path, MetaDataTableGenerator.FILE_NAME))
 
