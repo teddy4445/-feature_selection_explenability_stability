@@ -95,17 +95,29 @@ class ExplainablePerformanceMetrics:
     @staticmethod
     def recall(y_true,
                y_pred):
-        return recall_score(y_true, y_pred)
+        try:
+            return recall_score(y_true, y_pred)
+        except:
+            return recall_score([round(val) for val in y_true],
+                                [round(val) for val in y_pred])
 
     @staticmethod
     def precision(y_true,
                   y_pred):
-        return precision_score(y_true, y_pred)
+        try:
+            return precision_score(y_true, y_pred)
+        except:
+            return precision_score([round(val) for val in y_true],
+                                   [round(val) for val in y_pred])
 
     @staticmethod
     def r2(y_true,
            y_pred):
-        return r2_score(y_true, y_pred)
+        try:
+            return r2_score(y_true, y_pred)
+        except:
+            return r2_score([round(val) for val in y_true],
+                            [round(val) for val in y_pred])
 
     # END - PERFORMANCE METRICS #
 

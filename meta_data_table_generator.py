@@ -36,7 +36,6 @@ class MetaDataTableGenerator:
                  "remove_low_variance",
                  "missing_value_ratio",
                  "fishers_score",
-                 "permutation_feature_importance",
                  "support_vector_machines_recursive_feature_elimination"]
 
     FS_EMBEDDING = ["decision_tree",
