@@ -41,7 +41,10 @@ class FeatureSelectionAlgorithms:
         cols = pd.DataFrame(data=data,
                             columns=feature_name)
         re_fitted_model = DecisionTreeClassifier()
-        re_fitted_model.fit(cols, y)
+        if len(list(cols)) > 0:
+            re_fitted_model.fit(cols, y)
+        else:
+            re_fitted_model = None
         if return_model:
             return cols, re_fitted_model
         return cols
@@ -60,7 +63,10 @@ class FeatureSelectionAlgorithms:
         importance = np.abs(coefficients)
         cols = x[list(np.array(features)[importance > 0])]
         re_fitted_model = Lasso()
-        re_fitted_model.fit(cols, y)
+        if len(list(cols)) > 0:
+            re_fitted_model.fit(cols, y)
+        else:
+            re_fitted_model = None
         if return_model:
             return cols, re_fitted_model
         return cols
@@ -80,7 +86,10 @@ class FeatureSelectionAlgorithms:
         cols = pd.DataFrame(data=data,
                             columns=feature_name)
         re_fitted_model = LinearSVC(penalty="l1", dual=False)
-        re_fitted_model.fit(cols, y)
+        if len(list(cols)) > 0:
+            re_fitted_model.fit(cols, y)
+        else:
+            re_fitted_model = None
         if return_model:
             return cols, re_fitted_model
         return cols

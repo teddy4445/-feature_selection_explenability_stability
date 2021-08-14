@@ -89,8 +89,8 @@ class FunctionsMapper:
         # run embedding FS
         filter_embbeding_x, model = FunctionsMapper.FS_EMBEDDING[fs_embedding](x=filter_x,
                                                                                y=y)
-        # compute the y_pred for the performance metric
-        y_pred = model.predict(x_test[list(filter_embbeding_x)])
+        # compute the y_pred for the performance metric (if we have model)
+        y_pred = model.predict(x_test[list(filter_embbeding_x)]) if model is not None else [0 for val in y_test]
 
         # compute the overall score of the model
         return metrics_components[0](data=filter_embbeding_x,
