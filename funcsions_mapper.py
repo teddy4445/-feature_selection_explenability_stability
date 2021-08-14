@@ -1,4 +1,5 @@
 # library imports
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -103,15 +104,14 @@ class FunctionsMapper:
     def run_stability_column(stability_test: str,
                              fs_filter: str,
                              stability_metric: str,
-                             x: pd.DataFrame,
-                             y: pd.DataFrame):
+                             dataset: pd.DataFrame):
         """
         Get the properties (metric, FS filter, and FS embedding) and a dataset (x,y)
         and return the value of the corresponding column after computing the right pipeline
         """
-        return FunctionsMapper.STABILITY_TESTS[stability_test](data=x,
-                                                              feature_selection_method=FunctionsMapper.FS_FILTER[fs_filter],
-                                                              feature_sets_differance_metrics=FunctionsMapper.STABILITY_METRICS[stability_metric])
+        return np.mean(FunctionsMapper.STABILITY_TESTS[stability_test](data=dataset,
+                                                                       feature_selection_method=FunctionsMapper.FS_FILTER[fs_filter],
+                                                                       feature_sets_differance_metrics=FunctionsMapper.STABILITY_METRICS[stability_metric]))
 
     # end - runners #
 

@@ -308,8 +308,12 @@ class FeatureSelectionAlgorithms:
         :param top_k: number of features to return
         :param kernel: kernel to use in the SVM
         """
+        # TODO: replace the top_k by some threshold logic
         try:
-            return RFE(SVC(kernel=kernel), n_features_to_select=top_k, step=1).transform(x)
+            model = SVC(kernel=kernel)
+            model.fit(x=x,
+                      y=y)
+            return RFE(model, n_features_to_select=top_k, step=1).transform(x)
         except Exception as error:
             print("Error at FeatureSelectionAlgorithms.support_vector_machines_recursive_feature_elimination, saying: {}".format(error))
             return x

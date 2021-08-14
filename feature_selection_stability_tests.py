@@ -30,15 +30,22 @@ class FeatureSelectionStabilityTests:
         run each time the FS algorithm and test the changes
         """
         if shuffle:
+            # TODO: move 73 to global constant
             data = data.sample(frac=1,
                                random_state=73).reset_index(drop=True)
         chunk_size = math.floor(data.shape[0] / k_folds)
-        tests_datasets = [data.iloc[:chunk_index * chunk_size] for chunk_index in range(0, data.shape[0], chunk_size)]
+        tests_datasets = [data.iloc[:chunk_index * chunk_size] for chunk_index in range(1, k_folds)]
+        tests_datasets.append(data)
 
         feature_sets = []
         scores = [0]
         for i in range(k_folds):
-            feature_sets.append(feature_selection_method(tests_datasets[i]))
+
+            # TODO: move this magic word outside
+            x = tests_datasets[i].drop("target", axis=1)
+            y = tests_datasets[i]["target"]
+
+            feature_sets.append(list(feature_selection_method(x, y)))
             if i > 0:
                 scores.append(feature_sets_differance_metrics(feature_sets[i], feature_sets[i - 1]))
 
@@ -59,12 +66,16 @@ class FeatureSelectionStabilityTests:
         """
         increase the number of features, run each time the FS algorithm and test the changes
         """
-        tests_datasets = [data[list(data)[:up_to_feature_index]] for up_to_feature_index in range(1, data.shape[1])]
+        # TODO: move this magic word outside
+        x = data.drop("target", axis=1)
+        y = data["target"]
+
+        x_datasets = [x[list(x)[:up_to_feature_index]] for up_to_feature_index in range(1, x.shape[1])]
 
         feature_sets = []
         scores = [0]
-        for i in range(len(tests_datasets)):
-            feature_sets.append(feature_selection_method(tests_datasets[i]))
+        for i in range(len(x_datasets)):
+            feature_sets.append(list(feature_selection_method(x_datasets[i], y)))
             if i > 0:
                 scores.append(feature_sets_differance_metrics(feature_sets[i], feature_sets[i - 1]))
 
@@ -72,7 +83,7 @@ class FeatureSelectionStabilityTests:
         FeatureSelectionStabilityTests._save_plot_raw_data(save_test_raw_data=save_test_raw_data,
                                                            save_test_plot=save_test_plot,
                                                            scores=scores,
-                                                           x_size=len(tests_datasets))
+                                                           x_size=len(x_datasets))
         # return the scores to the caller
         return scores
 
@@ -91,21 +102,30 @@ class FeatureSelectionStabilityTests:
         if shuffle:
             data = data.sample(frac=1,
                                random_state=73).reset_index(drop=True)
-        chunk_size = math.floor(data.shape[0] / k_folds)
 
         feature_sets = []
         scores = [0]
 
-        for up_to_feature_index in range(1, data.shape[1]):
-            for chunk_index in range(0, data.shape[0], chunk_size):
-                test_dataset = data[list(data)[:up_to_feature_index]].iloc[:chunk_index * chunk_size]
-                feature_sets.append(feature_selection_method(test_dataset))
+        # TODO: move this magic word outside
+        x = data.drop("target", axis=1)
+        y = data["target"]
+
+        max_cut_index = min(x.shape[1], k_folds)
+        chunk_size = math.floor(data.shape[0] / max_cut_index)
+
+        for cut_index in range(max_cut_index):
+            x_dataset = x[list(x)[:cut_index+1]].iloc[:(cut_index+1) * chunk_size]
+
+            feature_sets.append(list(feature_selection_method(x_dataset,
+                                                              y.iloc[:(cut_index+1) * chunk_size])))
+            if cut_index > 0:
+                scores.append(feature_sets_differance_metrics(feature_sets[cut_index], feature_sets[cut_index - 1]))
 
         # save results if asked
         FeatureSelectionStabilityTests._save_plot_raw_data(save_test_raw_data=save_test_raw_data,
                                                            save_test_plot=save_test_plot,
                                                            scores=scores,
-                                                           x_size=len(data))
+                                                           x_size=max_cut_index)
 
         # return the scores to the caller
         return scores

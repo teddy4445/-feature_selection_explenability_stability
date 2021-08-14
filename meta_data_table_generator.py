@@ -144,8 +144,7 @@ class MetaDataTableGenerator:
                     col_value = FunctionsMapper.run_stability_column(stability_metric=stability_metric,
                                                                      fs_filter=fs_filter,
                                                                      stability_test=stability_test,
-                                                                     x=x,
-                                                                     y=y)
+                                                                     dataset=dataset)
                     dataset_summary_results.append(col_value)
         # return answer
         return dataset_summary_results
