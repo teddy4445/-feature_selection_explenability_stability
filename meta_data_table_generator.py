@@ -120,13 +120,15 @@ class MetaDataTableGenerator:
         dataset_summary_results.extend(DatasetPropertiesMeasurements.get_dataset_profile_vector(dataset=dataset))
 
         # TODO: move this magic word outside
-        x = dataset.drop("target")
+        x = dataset.drop("target", axis=1)
         y = dataset["target"]
 
         # columns for the expandability feature selection
         for metric in MetaDataTableGenerator.METRICS:
             for fs_filter in MetaDataTableGenerator.FS_FILTER:
                 for fs_embedding in MetaDataTableGenerator.FS_EMBEDDING:
+                    print("MetaDataTableGenerator.calculate_single_dataset_vector: working on:"
+                          " metric='{}', fs_filter='{}', fs_embedding='{}'".format(metric, fs_filter, fs_embedding))
                     col_value = FunctionsMapper.run_explainablity_column(metric=metric,
                                                                          fs_filter=fs_filter,
                                                                          fs_embedding=fs_embedding,
@@ -138,6 +140,8 @@ class MetaDataTableGenerator:
         for stability_metric in MetaDataTableGenerator.STABILITY_METRICS:
             for fs_filter in MetaDataTableGenerator.FS_FILTER:
                 for stability_test in MetaDataTableGenerator.STABILITY_TESTS:
+                    print("MetaDataTableGenerator.calculate_single_dataset_vector: working on:"
+                          " stability_metric='{}', fs_filter='{}', stability_test='{}'".format(stability_metric, fs_filter, stability_test))
                     col_value = FunctionsMapper.run_stability_column(stability_metric=stability_metric,
                                                                      fs_filter=fs_filter,
                                                                      stability_test=stability_test,

@@ -86,7 +86,11 @@ class ExplainablePerformanceMetrics:
     @staticmethod
     def accuracy(y_true,
                  y_pred):
-        return accuracy_score(y_true, y_pred)
+        try:
+            return accuracy_score(y_true, y_pred)
+        except:
+            return accuracy_score([round(val) for val in y_true],
+                                  [round(val) for val in y_pred])
 
     @staticmethod
     def recall(y_true,

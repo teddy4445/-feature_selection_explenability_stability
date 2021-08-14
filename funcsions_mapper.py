@@ -81,22 +81,23 @@ class FunctionsMapper:
 
         # TODO: the current code assumes we get complex performance and explainability metric, this won't work for the other options
         # TODO: and only for the 'rosenfeld_f_metric' explainability metric.
-
+        # get from the MDF the combination
         metrics_components = FunctionsMapper.get_complex_metric(metric=metric)
-
+        # run filter FS
         filter_x = FunctionsMapper.FS_FILTER[fs_filter](x=x,
                                                         y=y)
-
+        # run embedding FS
         filter_embbeding_x, model = FunctionsMapper.FS_EMBEDDING[fs_embedding](x=filter_x,
                                                                                y=y)
+        # compute the y_pred for the performance metric
+        y_pred = model.predict(x_test[list(filter_embbeding_x)])
 
-        y_pred = model.predict(x_test)
-
-        return FunctionsMapper.METRICS[metrics_components[0]](data=filter_embbeding_x,
-                                                              y_true=y_test,
-                                                              y_pred=y_pred,
-                                                              performance_metric=metrics_components[1],
-                                                              explainability_metric=metrics_components[2])
+        # compute the overall score of the model
+        return metrics_components[0](data=filter_embbeding_x,
+                                     y_true=y_test,
+                                     y_pred=y_pred,
+                                     performance_metric=metrics_components[1],
+                                     explainability_metric=metrics_components[2])
 
     @staticmethod
     def run_stability_column(stability_test: str,

@@ -34,9 +34,16 @@ class FeatureSelectionAlgorithms:
         # TODO: add here later
         """
         model = DecisionTreeClassifier().fit(x, y)
-        cols = SelectFromModel(model, prefit=True).transform(x)
+        select_model = SelectFromModel(model, prefit=True)
+        data = select_model.transform(x)
+        feature_idx = select_model.get_support()
+        feature_name = x.columns[feature_idx]
+        cols = pd.DataFrame(data=data,
+                            columns=feature_name)
+        re_fitted_model = DecisionTreeClassifier()
+        re_fitted_model.fit(cols, y)
         if return_model:
-            return cols, model
+            return cols, re_fitted_model
         return cols
 
     @staticmethod
@@ -49,13 +56,14 @@ class FeatureSelectionAlgorithms:
         features = list(x)
         model = Lasso()
         model.fit(x, y)
-        coefficients = model.named_steps['model'].coef_
+        coefficients = model.coef_
         importance = np.abs(coefficients)
-        cols = list(np.array(features)[importance > 0])
+        cols = x[list(np.array(features)[importance > 0])]
+        re_fitted_model = Lasso()
+        re_fitted_model.fit(cols, y)
         if return_model:
-            return cols, model
+            return cols, re_fitted_model
         return cols
-
 
     @staticmethod
     def linear_svc(x: pd.DataFrame,
@@ -64,11 +72,17 @@ class FeatureSelectionAlgorithms:
         """
         # TODO: add here later
         """
-        lsvc = LinearSVC(penalty="l1", dual=False).fit(x, y)
-        model = SelectFromModel(lsvc, prefit=True)
-        cols = list(model.transform(x))
+        model = LinearSVC(penalty="l1", dual=False).fit(x, y)
+        select_model = SelectFromModel(model, prefit=True)
+        data = select_model.transform(x)
+        feature_idx = select_model.get_support()
+        feature_name = x.columns[feature_idx]
+        cols = pd.DataFrame(data=data,
+                            columns=feature_name)
+        re_fitted_model = LinearSVC(penalty="l1", dual=False)
+        re_fitted_model.fit(cols, y)
         if return_model:
-            return cols, model
+            return cols, re_fitted_model
         return cols
 
     ### END - EMBEDDING ###
@@ -88,14 +102,18 @@ class FeatureSelectionAlgorithms:
         :param is_ranking: define if returning the subset with normalized p-values or not
         :return: sub set of 'x' (and scores as the normalized p-values)
         """
-        p_values = list(chi2(x, y)[1])
-        pass_columns = [index for index in p_values if p_values[index] < alpha]
-        pass_columns_p = [p_values[index] for index in p_values if p_values[index] < alpha]
-        answer = x.iloc[:, pass_columns]
-        if is_ranking:
-            p_value_sum = sum(pass_columns_p)
-            return answer, [value / p_value_sum if p_value_sum > 0 else 0 for value in pass_columns_p]
-        return answer
+        try:
+            p_values = list(chi2(x, y)[1])
+            pass_columns = [index for index in range(len(p_values)) if p_values[index] < alpha]
+            pass_columns_p = [p_values[index] for index in range(len(p_values)) if p_values[index] < alpha]
+            answer = x.iloc[:, pass_columns]
+            if is_ranking:
+                p_value_sum = sum(pass_columns_p)
+                return answer, [value / p_value_sum if p_value_sum > 0 else 0 for value in pass_columns_p]
+            return answer
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.chi_square, saying: {}".format(error))
+            return x
 
     @staticmethod
     def symmetrical_uncertainty(x: pd.DataFrame,
@@ -107,10 +125,14 @@ class FeatureSelectionAlgorithms:
         :param y: target var
         :param threshold: threshold for using the feature var
         """
-        # get scores for SU
-        scores = su_measure(x, y)
-        # return only columns above threshold
-        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        try:
+            # get scores for SU
+            scores = su_measure(x, y)
+            # return only columns above threshold
+            return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.symmetrical_uncertainty, saying: {}".format(error))
+            return x
 
     @staticmethod
     def information_gain(x: pd.DataFrame,
@@ -122,10 +144,14 @@ class FeatureSelectionAlgorithms:
         :param y: target var
         :param threshold: threshold for using the feature var
         """
-        # get scores for IG
-        scores = information_gain(x, y)
-        # return only columns above threshold
-        return x[[col for index, col in enumerate(x.columns) if scores[idx] >= threshold]]
+        try:
+            # get scores for IG
+            scores = information_gain(x, y)
+            # return only columns above threshold
+            return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.information_gain, saying: {}".format(error))
+            return x
 
     @staticmethod
     def pearson_correlation(x: pd.DataFrame,
@@ -137,10 +163,14 @@ class FeatureSelectionAlgorithms:
         :param y: target var
         :param threshold: threshold for using the feature
         """
-        # get Pearson correlation scores
-        scores = pearson_corr(x, y)
-        # return only top_k features (above threshold)
-        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        try:
+            # get Pearson correlation scores
+            scores = pearson_corr(x, y)
+            # return only top_k features (above threshold)
+            return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.pearson_correlation, saying: {}".format(error))
+            return x
 
     @staticmethod
     def spearman_correlation(x: pd.DataFrame,
@@ -152,15 +182,19 @@ class FeatureSelectionAlgorithms:
         :param y: target var
         :param threshold: threshold for using the feature
         """
-        # get Pearson correlation scores
-        scores = spearman_corr(x, y)
-        # return only top_k features (above threshold)
-        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        try:
+            # get Pearson correlation scores
+            scores = spearman_corr(x, y)
+            # return only top_k features (above threshold)
+            return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.spearman_correlation, saying: {}".format(error))
+            return x
 
     @staticmethod
     def remove_low_variance(x: pd.DataFrame,
                             y: Union[pd.DataFrame, pd.Series],
-                            remove_threshold: float,
+                            remove_threshold: float = 1,
                             is_normalized: bool = True):
         """
         Returns only features with variance greater than remove_threshold.
@@ -169,18 +203,22 @@ class FeatureSelectionAlgorithms:
         :param remove_threshold: minimal variance required
         :param is_normalized: use StandardScaler prior to calculation
         """
-        # Initialize estimator with required threshold
-        vt = VarianceThreshold(threshold=remove_threshold)
-        # Normalize if required
-        if is_normalized:
-            x_scaled = preprocessing.StandardScaler().fit_transform(x)
-            vt.fit(x_scaled)
-        else:
-            vt.fit(x)
-        # Return features with variance equal or greater than remove_threshold
-        mask = vt.get_support()
-        selected = x.loc[:, mask]
-        return selected
+        try:
+            # Initialize estimator with required threshold
+            vt = VarianceThreshold(threshold=remove_threshold)
+            # Normalize if required
+            if is_normalized:
+                x_scaled = preprocessing.StandardScaler().fit_transform(x)
+                vt.fit(x_scaled)
+            else:
+                vt.fit(x)
+            # Return features with variance equal or greater than remove_threshold
+            mask = vt.get_support()
+            selected = x.loc[:, mask]
+            return selected
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.remove_low_variance, saying: {}".format(error))
+            return x
 
     @staticmethod
     def missing_value_ratio(x: pd.DataFrame,
@@ -192,8 +230,12 @@ class FeatureSelectionAlgorithms:
         :param y: target var
         :param remove_threshold: maximal ratio of missing values [0 to 1] (default = 0.05)
         """
-        missing_value_ratio = x.isna().mean(axis=0)
-        return x[[col for index, col in enumerate(x.columns) if missing_value_ratio[index] <= remove_threshold]]
+        try:
+            missing_value_ratio = x.isna().mean(axis=0)
+            return x[[col for index, col in enumerate(x.columns) if missing_value_ratio[index] <= remove_threshold]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.missing_value_ratio, saying: {}".format(error))
+            return x
 
     @staticmethod
     def fishers_score(x: pd.DataFrame,
@@ -205,10 +247,14 @@ class FeatureSelectionAlgorithms:
         :param y: target var
         :param threshold: threshold for using the feature var
         """
-        # get Fisher's scores
-        scores = f_ratio_measure(x, y)
-        # return only columns above threshold
-        return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        try:
+            # get Fisher's scores
+            scores = f_ratio_measure(x, y)
+            # return only columns above threshold
+            return x[[col for index, col in enumerate(x.columns) if scores[index] >= threshold]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.fishers_score, saying: {}".format(error))
+            return x
 
     @staticmethod
     def permutation_feature_importance(x: pd.DataFrame,
@@ -220,20 +266,24 @@ class FeatureSelectionAlgorithms:
         """
         # TODO: add here later
         """
-        # Fit model
-        x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=FeatureSelectionAlgorithms.RANDOM_STATE)
-        fitted_model = model.fit(x_train, y_train)
+        try:
+            # Fit model
+            x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=FeatureSelectionAlgorithms.RANDOM_STATE)
+            fitted_model = model.fit(x_train, y_train)
 
-        # Get importances mean and std
-        scores = permutation_importance(fitted_model,
-                                        x,
-                                        y,
-                                        scoring=None,
-                                        n_repeats=n_repeats,
-                                        random_state=FeatureSelectionAlgorithms.RANDOM_STATE,
-                                        sample_weight=None)
-        return x[[col for index, col in enumerate(x.columns) if (scores.importances_mean[index] >= mean_remove_threshold and
-                                                                 scores.importances_std[index] < std_remove_threshold)]]
+            # Get importances mean and std
+            scores = permutation_importance(fitted_model,
+                                            x,
+                                            y,
+                                            scoring=None,
+                                            n_repeats=n_repeats,
+                                            random_state=FeatureSelectionAlgorithms.RANDOM_STATE,
+                                            sample_weight=None)
+            return x[[col for index, col in enumerate(x.columns) if (scores.importances_mean[index] >= mean_remove_threshold and
+                                                                     scores.importances_std[index] < std_remove_threshold)]]
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.fishers_score, saying: {}".format(error))
+            return x
 
     @staticmethod
     def support_vector_machines_recursive_feature_elimination(x: pd.DataFrame,
@@ -249,7 +299,11 @@ class FeatureSelectionAlgorithms:
         :param top_k: number of features to return
         :param kernel: kernel to use in the SVM
         """
-        return RFE(SVC(kernel=kernel), n_features_to_select=top_k, step=1).transform(x)
+        try:
+            return RFE(SVC(kernel=kernel), n_features_to_select=top_k, step=1).transform(x)
+        except Exception as error:
+            print("Error at FeatureSelectionAlgorithms.support_vector_machines_recursive_feature_elimination, saying: {}".format(error))
+            return x
 
     # SAME NAME CALLS #
 
