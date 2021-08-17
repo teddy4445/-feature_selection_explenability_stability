@@ -52,14 +52,16 @@ class DataSetPrepare:
                     if unique_count / df[col].size > DataSetPrepare.MAX_RATIO or unique_count > DataSetPrepare.MAX_UNIQUE_VALUES:
                         col_to_remove.append(col)
                     else:
+                        """
                         new_cols_names = list(df[col].unique())
                         for new_name in new_cols_names:
                             df[new_name] = 0
                             df.loc[df[col] == new_name, new_name] = 1
                         col_to_remove.append(col)
+                        """
                         # TODO: maybe use one hot encoding instead
-                        # mapper = {value: index for index, value in enumerate(list(df[col].unique()))}
-                        # df[col] = df[col].apply(lambda x: mapper[x])
+                        mapper = {value: index for index, value in enumerate(list(df[col].unique()))}
+                        df[col] = df[col].apply(lambda x: mapper[x])
             # remove what we do not need
             df.drop(col_to_remove, axis=1, inplace=True)
 
@@ -77,4 +79,4 @@ class DataSetPrepare:
 
 if __name__ == '__main__':
     DataSetPrepare.run(data_sets_source_folder_path=os.path.join(os.path.dirname(__file__), "data"),
-                       data_sets_target_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed_one_hot"))
+                       data_sets_target_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed"))

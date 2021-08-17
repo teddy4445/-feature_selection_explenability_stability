@@ -311,8 +311,8 @@ class FeatureSelectionAlgorithms:
         # TODO: replace the top_k by some threshold logic
         try:
             model = SVC(kernel=kernel)
-            model.fit(x=x,
-                      y=y)
+            model.fit(x,
+                      y)
             return RFE(model, n_features_to_select=top_k, step=1).transform(x)
         except Exception as error:
             print("Error at FeatureSelectionAlgorithms.support_vector_machines_recursive_feature_elimination, saying: {}".format(error))

@@ -31,7 +31,8 @@ class ExplainablePerformanceMetrics:
         return (1 + beta * beta) * per_score * exp_score / (beta * beta * per_score + exp_score)
 
     @staticmethod
-    def mean(y_true,
+    def mean(data,
+             y_true,
              y_pred,
              performance_metric,
              explainability_metric,
@@ -39,7 +40,7 @@ class ExplainablePerformanceMetrics:
         """
         Weighted average of the explainability and performance metric
         """
-        return beta * explainability_metric(y_true, y_pred) + (1-beta) * performance_metric(y_true, y_pred)
+        return beta * explainability_metric(data) + (1-beta) * performance_metric(y_true, y_pred)
 
     # END - COMBINED METRICS #
 
@@ -89,8 +90,11 @@ class ExplainablePerformanceMetrics:
         try:
             return accuracy_score(y_true, y_pred)
         except:
-            return accuracy_score([round(val) for val in y_true],
-                                  [round(val) for val in y_pred])
+            try:
+                return accuracy_score([round(val) for val in y_true],
+                                      [round(val) for val in y_pred])
+            except:
+                return 0
 
     @staticmethod
     def recall(y_true,
@@ -98,8 +102,11 @@ class ExplainablePerformanceMetrics:
         try:
             return recall_score(y_true, y_pred)
         except:
-            return recall_score([round(val) for val in y_true],
-                                [round(val) for val in y_pred])
+            try:
+                return recall_score([round(val) for val in y_true],
+                                    [round(val) for val in y_pred])
+            except:
+                return 0
 
     @staticmethod
     def precision(y_true,
@@ -107,8 +114,11 @@ class ExplainablePerformanceMetrics:
         try:
             return precision_score(y_true, y_pred)
         except:
-            return precision_score([round(val) for val in y_true],
-                                   [round(val) for val in y_pred])
+            try:
+                return precision_score([round(val) for val in y_true],
+                                       [round(val) for val in y_pred])
+            except:
+                return 0
 
     @staticmethod
     def r2(y_true,
@@ -116,8 +126,11 @@ class ExplainablePerformanceMetrics:
         try:
             return r2_score(y_true, y_pred)
         except:
-            return r2_score([round(val) for val in y_true],
-                            [round(val) for val in y_pred])
+            try:
+                return r2_score([round(val) for val in y_true],
+                                [round(val) for val in y_pred])
+            except:
+                return 0
 
     # END - PERFORMANCE METRICS #
 

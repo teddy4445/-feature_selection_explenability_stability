@@ -77,8 +77,8 @@ class MetaDataTableGenerator:
                                                                                              dataset_name=dataset_name)
 
             # add to the global dataframe
-            for index, col in enumerate(cols):
-                answer_df[col](dataset_summary_results[index])
+            answer_df.append(dataset_summary_results, ignore_index=True)
+            # save temp answer
             answer_df.to_csv(os.path.join(results_folder_path, "temp_{}_{}".format(file_index, MetaDataTableGenerator.FILE_NAME)))
             file_index += 1
         # save the results to the basic folder
@@ -117,9 +117,11 @@ class MetaDataTableGenerator:
         Calculate the row corosponding to each dataset in the meta-data table
         """
         # NOTE: we assume that all the datasets are classification tasks and that the last column is the target column #
-        dataset_summary_results = [dataset_name]
+        dataset_summary_results = {"ds_name": dataset_name}
         # perform all the needed tests and experiments on this dataset
-        dataset_summary_results.extend(DatasetPropertiesMeasurements.get_dataset_profile_vector(dataset=dataset))
+        x_cols_values = DatasetPropertiesMeasurements.get_dataset_profile(dataset=dataset)
+        for x_col, value in x_cols_values.items():
+            dataset_summary_results[x_col] = value
 
         # TODO: move this magic word outside
         x = dataset.drop("target", axis=1)
@@ -136,7 +138,9 @@ class MetaDataTableGenerator:
                                                                          fs_embedding=fs_embedding,
                                                                          x=x,
                                                                          y=y)
-                    dataset_summary_results.append(col_value)
+                    dataset_summary_results["expandability-{}-{}-{}".format(metric,
+                                                                            fs_filter,
+                                                                            fs_embedding)] = (col_value)
 
         # columns for the stability feature selection
         for stability_metric in MetaDataTableGenerator.STABILITY_METRICS:
@@ -148,7 +152,10 @@ class MetaDataTableGenerator:
                                                                      fs_filter=fs_filter,
                                                                      stability_test=stability_test,
                                                                      dataset=dataset)
-                    dataset_summary_results.append(col_value)
+
+                    dataset_summary_results[("stability-{}-{}-{}".format(stability_metric,
+                                                                         fs_filter,
+                                                                         stability_test))] = col_value
         # return answer
         return dataset_summary_results
 
