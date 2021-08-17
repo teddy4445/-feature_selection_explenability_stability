@@ -27,7 +27,7 @@ class ExplainablePerformancePipelineAnalyzer:
 
         ExplainablePerformancePipelineAnalyzer.divide_mdf_by_metric(mdf=mdf,
                                                                     results_folder_path=results_folder_path)
-        ExplainablePerformancePipelineAnalyzer.index_all_classes_of_pairs_of_fs(mdf=mdf)
+        ExplainablePerformancePipelineAnalyzer.index_all_classes_of_pairs_of_fs(results_folder_path=results_folder_path)
         ExplainablePerformancePipelineAnalyzer.train_and_test_local_classifier(mdf=mdf,
                                                                                results_folder_path=results_folder_path)
 
@@ -46,15 +46,39 @@ class ExplainablePerformancePipelineAnalyzer:
 
         :return: a dictionary: keys are metric names, and the values are the obtained dataframes.
         """
-        pass
+        # make sure we have target folder
+        try:
+            os.makedirs(results_folder_path)
+        except:
+            pass
+
+        # create sub-table for every metric from MetaDataTableGenerator.METRICS
+        for metric in MetaDataTableGenerator.METRICS:
+            # create sub_mdf using the columns with x_ and with the relevant metric (__ replaced by _)
+            sub_mdf = mdf[[c for c in mdf.columns if
+                           c.startswith("x_") or (c.startswith("expandability_") and metric.replace("__", "_") in c)]]
+            sub_mdf.to_csv(os.path.join(results_folder_path, "sub_table_for_{}.csv".format(metric)))
 
     @staticmethod
-    def index_all_classes_of_pairs_of_fs(mdf):
+    def index_all_classes_of_pairs_of_fs(results_folder_path):
+        #TODO: fix documentation
         """
         Assumption: the MDF is obtained from the 'ExplainablePerformancePipelineAnalyzer.divide_mdf_by_metric' method.
         This method add a column to the mdf with the index of the best 'y' column (starting with 0).
         """
-        pass
+        # read sub_mdf
+        for filename in os.listdir(results_folder_path):
+            sub_mdf = pd.read_csv(os.path.join(results_folder_path, filename))
+
+            # find column with maximal value
+            sub_mdf['best'] = sub_mdf.idxmax(axis="columns")
+
+            # convert column to integers
+            mapper = {value: index for index, value in enumerate(list(sub_mdf.columns))}
+            sub_mdf['best'] = sub_mdf['best'].apply(lambda x: mapper[x])
+
+            sub_mdf.to_csv(os.path.join(results_folder_path, filename))
+
 
     @staticmethod
     def train_and_test_local_classifier(mdf,
@@ -72,3 +96,6 @@ class ExplainablePerformancePipelineAnalyzer:
         ExplainablePerformanceMetrics.accuracy(y_true=[],
                                                y_pred=[])
 
+
+if __name__ == '__main__':
+    ExplainablePerformancePipelineAnalyzer.run("meta_table_data", "sub_meta_tables")
