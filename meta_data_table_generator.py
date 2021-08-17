@@ -35,8 +35,7 @@ class MetaDataTableGenerator:
                  "spearman_correlation",
                  "remove_low_variance",
                  "missing_value_ratio",
-                 "fishers_score",
-                 "support_vector_machines_recursive_feature_elimination"]
+                 "fishers_score"]
 
     FS_EMBEDDING = ["decision_tree",
                     "lasso",
@@ -77,7 +76,7 @@ class MetaDataTableGenerator:
                                                                                              dataset_name=dataset_name)
 
             # add to the global dataframe
-            answer_df.append(dataset_summary_results, ignore_index=True)
+            answer_df = answer_df.append(dataset_summary_results, ignore_index=True)
             # save temp answer
             answer_df.to_csv(os.path.join(results_folder_path, "temp_{}_{}".format(file_index, MetaDataTableGenerator.FILE_NAME)))
             file_index += 1
@@ -121,7 +120,7 @@ class MetaDataTableGenerator:
         # perform all the needed tests and experiments on this dataset
         x_cols_values = DatasetPropertiesMeasurements.get_dataset_profile(dataset=dataset)
         for x_col, value in x_cols_values.items():
-            dataset_summary_results[x_col] = value
+            dataset_summary_results["x-{}".format(x_col)] = value
 
         # TODO: move this magic word outside
         x = dataset.drop("target", axis=1)

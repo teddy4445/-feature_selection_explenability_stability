@@ -28,7 +28,10 @@ class ExplainablePerformanceMetrics:
         """
         exp_score = explainability_metric(data)
         per_score = performance_metric(y_true, y_pred)
-        return (1 + beta * beta) * per_score * exp_score / (beta * beta * per_score + exp_score)
+        try:
+            return (1 + beta * beta) * per_score * exp_score / (beta * beta * per_score + exp_score)
+        except:
+            return 0
 
     @staticmethod
     def mean(data,

@@ -75,10 +75,13 @@ class FunctionsMapper:
         Get the properties (metric, FS filter, and FS embedding) and a dataset (x,y)
         and return the value of the corresponding column after computing the right pipeline
         """
-        x_train, x_test, y_train, y_test = train_test_split(x,
-                                                            y,
-                                                            test_size=FunctionsMapper.TEST_SIZE,
-                                                            random_state=FunctionsMapper.RANDOM_STATE)
+        try:
+            x_train, x_test, y_train, y_test = train_test_split(x,
+                                                                y,
+                                                                test_size=FunctionsMapper.TEST_SIZE,
+                                                                random_state=FunctionsMapper.RANDOM_STATE)
+        except:
+            return -1 # TODO: fix these error later
 
         # TODO: the current code assumes we get complex performance and explainability metric, this won't work for the other options
         # TODO: and only for the 'rosenfeld_f_metric' explainability metric.

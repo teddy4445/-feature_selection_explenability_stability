@@ -28,7 +28,8 @@ class FeatureSelectionSetsDifferences:
         The classical intersection over union metric
         """
         if len(original_set) == len(new_set) and len(new_set) == 0:
-            raise Exception("Both original and new feature sets are empty, cannot compute the IOU metric")
+            #raise Exception("Both original and new feature sets are empty, cannot compute the IOU metric")
+            return 0
         return len(list(set(original_set).intersection(set(new_set)))) / len(
             list(set(original_set).union(set(new_set))))
 
