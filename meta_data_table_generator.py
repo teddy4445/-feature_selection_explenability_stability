@@ -56,13 +56,19 @@ class MetaDataTableGenerator:
             os.mkdir(results_folder_path)
         except:
             pass
-        # create empty dataset we will populate during the function
-        cols = MetaDataTableGenerator.prepare_columns()
-        answer_df = pd.DataFrame(data=None,
-                                 columns=cols)
-        # if we wish to see debugging
-        DatasetPropertiesMeasurements.IS_DEBUG = True
-        file_index = 1
+
+        answer_df = MetaDataTableGenerator.prepare_columns()
+
+        if answer_df is None:
+            # create empty dataset we will populate during the function
+            cols = MetaDataTableGenerator.prepare_columns()
+            answer_df = pd.DataFrame(data=None,
+                                     columns=cols)
+            # if we wish to see debugging
+            DatasetPropertiesMeasurements.IS_DEBUG = True
+            file_index = 1
+        else:
+            pass_rows = list(answer_df["ds_name"])
         for path in glob.glob(os.path.join(data_folder_path, "*")):
             # print the file name if debugging mood
             if DatasetPropertiesMeasurements.IS_DEBUG:
