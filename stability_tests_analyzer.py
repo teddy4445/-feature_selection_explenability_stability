@@ -1,6 +1,10 @@
 # library imports
 import os
+import numpy as np
 import pandas as pd
+from matplotlib import cm
+import matplotlib.pyplot as plt
+from matplotlib.ticker import LinearLocator
 
 # project imports
 from meta_data_table_generator import MetaDataTableGenerator
@@ -11,6 +15,11 @@ class StabilityTestsAnalyzer:
     A class that provides plots, CSV files with tables, and statistical outcomes of a meta-dataset of feature selection
     computed by the MetaDataTableGenerator.run class
     """
+
+    # CONSTS #
+    STABILITY_COL_START_NAME = "stability-"
+    COL_SPLIT_CHAR = "-"
+    # END - CONSTS #
 
     def __init__(self):
         pass
@@ -23,6 +32,14 @@ class StabilityTestsAnalyzer:
         """
         # read data from meta table file
         mdf = pd.read_csv(os.path.join(data_folder_path, MetaDataTableGenerator.FILE_NAME))
+
+        # prepare folder
+        try:
+            os.mkdir(results_folder_path)
+        except:
+            pass
+
+        # run analysis in all its forms
         StabilityTestsAnalyzer.first_plots(mdf=mdf,
                                            results_folder_path=results_folder_path)
         StabilityTestsAnalyzer.hierarchical_clustering(mdf=mdf,
@@ -59,7 +76,64 @@ class StabilityTestsAnalyzer:
                                   and with an error bar corresponding to one STD.
            ** The z-values needs to be normalized between 0 and 1
         """
-        pass
+        # first, find all the FS algorithms + stability tests
+        fs_algorithms = {}
+        stability_tests = {}
+        column_names = list(mdf)
+        stability_column_names = []
+        for column_name in column_names:
+            try:
+                stability_metric, fs_filter, stability_test = StabilityTestsAnalyzer._get_column_signature(column_name=column_name)
+                if fs_filter not in fs_algorithms:
+                    fs_algorithms[fs_filter] = len(fs_algorithms.keys())
+                if stability_test not in stability_tests:
+                    stability_tests[stability_test] = len(stability_tests.keys())
+                stability_column_names.append(column_name)
+            except:
+                pass
+        # format the data as x,y,z for each row in the dataset
+        for index, row in mdf.iterrows():
+            x = list(range(len(list(fs_algorithms.keys()))))
+            y = list(range(len(list(stability_tests.keys()))))
+            # gather the data from the relevant columns
+            z = [float(row[column_name]) for column_name in stability_column_names]
+            # normalize the z-values to [0, 1]
+            z_min = min(z)
+            z_delta = max(z) - z_min
+            y_size = len(y)
+            x_size = len(x)
+            z = np.asarray([round((z_value - z_min) / z_delta, 3) for z_value in z]).reshape(y_size, x_size)
+            # make 2d grid
+            x, y = np.meshgrid(x, y)
+            # plot the surface.
+            fig, ax = plt.subplots(subplot_kw={"projection": "3d"},
+                                   figsize=(10, 10))
+            ax.plot_wireframe(x,
+                              y,
+                              z,
+                              rstride=1,
+                              cstride=1,
+                              color="black",
+                              alpha=0.5,
+                              cmap=cm.coolwarm)
+            ax.scatter(x,
+                       y,
+                       z,
+                       c=z,
+                       s=80,
+                       cmap=cm.coolwarm)
+            # format the z-axis in a cooler way
+            ax.set_zlim(0, 1)
+            ax.zaxis.set_major_locator(LinearLocator(11))
+            ax.zaxis.set_major_formatter('{x:.02f}')
+            ax.set_yticks(list(range(len(list(stability_tests.keys())))))
+            ax.set_yticklabels(list(stability_tests.keys()))
+            ax.set_xticklabels([value.replace("_", " ") for value in list(fs_algorithms.keys())])
+            ax.view_init(28, 30)
+            # save the plot
+            plt.savefig(os.path.join(results_folder_path, "{}.png".format(row["ds_name"])))
+            # close for next plot
+            plt.close()
 
     @staticmethod
     def hierarchical_clustering(mdf,
@@ -87,3 +161,25 @@ class StabilityTestsAnalyzer:
         The result is saved to a csv file.
         """
         pass
+
+    # HELPER #
+
+    @staticmethod
+    def _get_column_signature(column_name: str):
+        """
+        Helper function, gets the columns classification to the three objects
+        """
+        # if not stability column, just return error
+        if StabilityTestsAnalyzer.STABILITY_COL_START_NAME not in column_name:
+            raise Exception("Not a stability column")
+        # break it
+        column_name = column_name[len(StabilityTestsAnalyzer.STABILITY_COL_START_NAME):]
+        return column_name.strip().split(StabilityTestsAnalyzer.COL_SPLIT_CHAR)
+
+    # END - HELPER #
+
+
+if __name__ == '__main__':
+    StabilityTestsAnalyzer.run(
+        data_folder_path=r"C:\Users\lazeb\Desktop\-feature_selection_explenability_stability\meta_table_data",
+        results_folder_path=r"C:\Users\lazeb\Desktop\-feature_selection_explenability_stability\stability_results")
