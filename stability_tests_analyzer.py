@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 from matplotlib import cm
 import matplotlib.pyplot as plt
+from sklearn import preprocessing
+from scipy.cluster import hierarchy
 from matplotlib.ticker import LinearLocator
+from scipy.cluster.hierarchy import dendrogram
+from sklearn.cluster import AgglomerativeClustering
 
 # project imports
 from meta_data_table_generator import MetaDataTableGenerator
@@ -40,8 +44,10 @@ class StabilityTestsAnalyzer:
             pass
 
         # run analysis in all its forms
+        """
         StabilityTestsAnalyzer.first_plots(mdf=mdf,
                                            results_folder_path=results_folder_path)
+        """
         StabilityTestsAnalyzer.hierarchical_clustering(mdf=mdf,
                                                        results_folder_path=results_folder_path)
         StabilityTestsAnalyzer.prepare_dataset_for_classificator_learning(mdf=mdf,
@@ -203,7 +209,7 @@ class StabilityTestsAnalyzer:
         This method responsible to show which datasets are similar each one on the 'x' features
         and than similar in the results for the same FS, stability test, and FS set distance metric.
 
-        This method will generate a hierarchical clustering plot (for example: https://prnt.sc/1o4w2cq) where the samples
+        This method will generate a hierarchical clustering dendrogram plot (for example: https://prnt.sc/1o4w2cq) where the samples
         are the 'x' features of each row in the MDF and a 'y' feature which is one stability-related column.
         * This process repeats for every 'y' feature which is one stability-related column in the MDF.
         """
@@ -217,7 +223,7 @@ class StabilityTestsAnalyzer:
         fs_algorithms = {}
         stability_tests = {}
         column_names = list(mdf)
-        stability_column_names = []
+        stability_column_names = ["baseline"]
         x_column_names = []
         for column_name in column_names:
             # get the x represented columns
@@ -236,9 +242,37 @@ class StabilityTestsAnalyzer:
 
         # format for each row the representing x-vector of it
         ds_embeddings = []
+        ds_labels = []
+        # normlize the dataset to handle same size data
+        mdf_x_data = mdf[x_column_names].values  # returns a numpy array
+        min_max_scaler = preprocessing.MinMaxScaler()
+        mdf_x_data_scaled = min_max_scaler.fit_transform(mdf_x_data)
+        hierarchy_mdf = pd.DataFrame(mdf_x_data_scaled, columns=mdf[x_column_names].columns)
+        # prepare the rows for the clustering later
+        for index, row in hierarchy_mdf.iterrows():
+            ds_embeddings.append([row[column_name] if not np.isnan(row[column_name]) else 0 for column_name in x_column_names])
+            ds_embeddings[index].append(0)
+        # find the db_names
         for index, row in mdf.iterrows():
-            # TODO : make imbedding and produce the graphs
-            # ds_embeddings.append()
+            ds_labels.append(row["ds_name"].replace(".csv", ""))
+
+        # plot  hierarchy dendrogram
+        for stability_column in stability_column_names:
+            # prepare data
+            if stability_column != "baseline":
+                for ds_index, ds_embedding in enumerate(ds_embeddings):
+                    ds_embedding[-1] = mdf[stability_column][ds_index]
+            plt.figure()
+            hierarchy_z = hierarchy.linkage(ds_embeddings, method='single')
+            hierarchy.dendrogram(hierarchy_z,
+                                 labels=np.asarray(ds_labels),
+                                 distance_sort='descending',
+                                 show_leaf_counts=True)
+            plt.xticks(rotation=90)
+            plt.subplots_adjust(bottom=0.2)
+            plt.savefig(os.path.join(results_folder_path, inner_folder_name, "hierarchical_plot_for_{}.png".format(stability_column)))
+            plt.close()
+
 
     @staticmethod
     def prepare_dataset_for_classificator_learning(mdf,
