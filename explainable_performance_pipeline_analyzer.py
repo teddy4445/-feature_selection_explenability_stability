@@ -71,7 +71,7 @@ class ExplainablePerformancePipelineAnalyzer:
             sub_mdf = pd.read_csv(os.path.join(results_folder_path, filename))
 
             # find column with maximal value
-            sub_mdf['best'] = sub_mdf.idxmax(axis="columns")
+            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x_')]].idxmax(axis="columns")
 
             # convert column to integers
             mapper = {value: index for index, value in enumerate(list(sub_mdf.columns))}
