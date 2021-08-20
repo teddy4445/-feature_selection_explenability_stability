@@ -273,7 +273,6 @@ class StabilityTestsAnalyzer:
             plt.savefig(os.path.join(results_folder_path, inner_folder_name, "hierarchical_plot_for_{}.png".format(stability_column)))
             plt.close()
 
-
     @staticmethod
     def prepare_dataset_for_classificator_learning(mdf,
                                                    results_folder_path: str):
@@ -282,7 +281,7 @@ class StabilityTestsAnalyzer:
         The new table is constructed from the 'x' columns of the MDF (repeating for multiple lines)
         with a column that indicates the FS algorithm used (according to some indexing of the FS algorithms)
         and a column that indicates if for this FS and dataset the data-stability (0), feature-stability (1),
-        or Lyapunov-stability (2) test has the lowest value.
+        or Lyapunov-stability (2) test that has the highest value.
 
         The result is saved to a csv file.
         """
