@@ -294,6 +294,16 @@ class StabilityTestsAnalyzer:
         3. Z-axis: score
         4. Color: stability test
         """
+        # prepare inner folders
+        db_view = "db_view"
+        fs_filter_view = "fs_filter_view"
+        inner_folders = [db_view, fs_filter_view]
+        for folder_name in inner_folders:
+            try:
+                os.mkdir(os.path.join(results_folder_path, folder_name))
+            except:
+                pass
+
         # load the fs algorithms and stability tests
         fs_algorithms = {}
         stability_tests = {}
@@ -346,12 +356,74 @@ class StabilityTestsAnalyzer:
         ax.set_xticks(list(range(len(list(datasets_names.keys())))))
         ax.set_xticklabels(list(datasets_names.keys()))
         ax.set_yticks(list(range(len(list(fs_algorithms.keys())))))
-        ax.set_yticklabels(list(fs_algorithms.keys()))
+        ax.set_yticklabels([value.replace("_", " ") for value in list(fs_algorithms.keys())])
         ax.set_zlabel("Score")
         plt.legend()
-        plt.show()
         plt.savefig(os.path.join(results_folder_path, "summary_scatter_plot.png"))
         plt.close()
+
+        """
+
+        # generate view in the DB level
+        datasets_names_list = list(datasets_names.keys())
+        points_in_db = int(len(x) / len(datasets_names_list))
+        for db_index in range(len(datasets_names_list)):
+            y_db = y[db_index*points_in_db:(db_index+1)*points_in_db]
+            z_db = z[db_index*points_in_db:(db_index+1)*points_in_db]
+            fig, ax = plt.subplots(figsize=(8, 8))
+            for color_group in set(color):
+                ax.scatter([value for index, value in enumerate(y_db) if color[index] == color_group],
+                           [value for index, value in enumerate(z_db) if color[index] == color_group],
+                           s=30,
+                           marker="o",
+                           c=color_mapper[color_group],
+                           alpha=0.5,
+                           label="{}".format(list(stability_tests.keys())[color_group]))
+            ax.set_xticks(list(range(len(list(fs_algorithms.keys())))))
+            ax.set_xticklabels([value.replace("_", " ") for value in list(fs_algorithms.keys())], rotation=90)
+            ax.set_yticks([value / 10 for value in list(range(11))])
+            ax.set_ylim(0, 1)
+            ax.set_ylabel("Score")
+            ax.set_xlabel("FS algorithm")
+            plt.title("Test on DB: '{}'".format(datasets_names_list[db_index]))
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(os.path.join(results_folder_path, db_view, "summary_scatter_plot_{}_db_view.png".format(datasets_names_list[db_index])))
+            plt.close()
+            print("StabilityTestsAnalyzer.scatter_data: finish DB view of {}".format(datasets_names_list[db_index]))
+        
+        """
+
+        # generate view in the FS level
+        fs_algorithms_list = list(fs_algorithms.keys())
+        points_in_fs_algorithm = int(len(x) / len(fs_algorithms_list))
+        for fs_algorithm_index in range(len(fs_algorithms_list)):
+            db_numbers = list(range(int(points_in_fs_algorithm/len(list(stability_tests.keys())))))
+            y_fs = []
+            [y_fs.extend(db_numbers) for i in range(len(list(stability_tests.keys())))]
+            z_fs = z[fs_algorithm_index*points_in_fs_algorithm:(fs_algorithm_index+1)*points_in_fs_algorithm]
+            fig, ax = plt.subplots(figsize=(8, 8))
+            for color_group in set(color):
+                ax.scatter([value for index, value in enumerate(y_fs) if color[index] == color_group],
+                           [value for index, value in enumerate(z_fs) if color[index] == color_group],
+                           s=30,
+                           marker="o",
+                           c=color_mapper[color_group],
+                           alpha=0.5,
+                           label="{}".format(list(stability_tests.keys())[color_group]))
+            ax.set_xticks(list(range(len(list(datasets_names.keys())))))
+            ax.set_xticklabels([value.replace("_", " ").replace(".csv", "") for value in list(datasets_names.keys())], rotation=90)
+            ax.set_yticks([value / 10 for value in list(range(11))])
+            ax.set_ylim(0, 1)
+            ax.set_ylabel("Score")
+            ax.set_xlabel("DB")
+            plt.title("Test on FS: '{}'".format(fs_algorithms_list[fs_algorithm_index]))
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(os.path.join(results_folder_path, fs_filter_view, "summary_scatter_plot_{}_fs_view.png".format(fs_algorithms_list[fs_algorithm_index])))
+            plt.close()
+            print("StabilityTestsAnalyzer.scatter_data: finish FS view of {}".format(fs_algorithms_list[fs_algorithm_index]))
+
 
     @staticmethod
     def prepare_dataset_for_classificator_learning(mdf,
