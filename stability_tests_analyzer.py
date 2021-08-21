@@ -23,6 +23,7 @@ class StabilityTestsAnalyzer:
     # CONSTS #
     STABILITY_COL_START_NAME = "stability-"
     COL_SPLIT_CHAR = "-"
+
     # END - CONSTS #
 
     def __init__(self):
@@ -47,9 +48,11 @@ class StabilityTestsAnalyzer:
         """
         StabilityTestsAnalyzer.first_plots(mdf=mdf,
                                            results_folder_path=results_folder_path)
-        """
         StabilityTestsAnalyzer.hierarchical_clustering(mdf=mdf,
                                                        results_folder_path=results_folder_path)
+        """
+        StabilityTestsAnalyzer.scatter_data(mdf=mdf,
+                                            results_folder_path=results_folder_path)
         StabilityTestsAnalyzer.prepare_dataset_for_classificator_learning(mdf=mdf,
                                                                           results_folder_path=results_folder_path)
 
@@ -81,7 +84,8 @@ class StabilityTestsAnalyzer:
         threed_prints_folder_name = "3d_plots"
         instance_bar_prints_folder_name = "instance_bar_plots"
         stability_instance_bar_prints_folder_name = "stability_instance_bar_plots"
-        inner_folders = [threed_prints_folder_name, instance_bar_prints_folder_name, stability_instance_bar_prints_folder_name]
+        inner_folders = [threed_prints_folder_name, instance_bar_prints_folder_name,
+                         stability_instance_bar_prints_folder_name]
         for folder_name in inner_folders:
             try:
                 os.mkdir(os.path.join(results_folder_path, folder_name))
@@ -95,7 +99,8 @@ class StabilityTestsAnalyzer:
         stability_column_names = []
         for column_name in column_names:
             try:
-                stability_metric, fs_filter, stability_test = StabilityTestsAnalyzer._get_column_signature(column_name=column_name)
+                stability_metric, fs_filter, stability_test = StabilityTestsAnalyzer._get_column_signature(
+                    column_name=column_name)
                 if fs_filter not in fs_algorithms:
                     fs_algorithms[fs_filter] = len(fs_algorithms.keys())
                 if stability_test not in stability_tests:
@@ -150,7 +155,7 @@ class StabilityTestsAnalyzer:
 
             # save data as a bar plot #
             x = np.arange(len(fs_algorithms))  # the label locations
-            width = 0.9/len(stability_tests)  # the width of the bars
+            width = 0.9 / len(stability_tests)  # the width of the bars
             # prepare plot
             fig, ax = plt.subplots()
             for stability_test_index, stability_test in enumerate(stability_tests):
@@ -172,7 +177,8 @@ class StabilityTestsAnalyzer:
             plt.xticks(rotation=90)
             fig.tight_layout()
             # save the plot
-            plt.savefig(os.path.join(results_folder_path, instance_bar_prints_folder_name, "{}_bar_plot.png".format(row["ds_name"])))
+            plt.savefig(os.path.join(results_folder_path, instance_bar_prints_folder_name,
+                                     "{}_bar_plot.png".format(row["ds_name"])))
             # close for next plot
             plt.close()
 
@@ -182,8 +188,10 @@ class StabilityTestsAnalyzer:
             # prepare plot
             fig, ax = plt.subplots()
             rects = ax.bar(x,
-                           [np.nanmean([z[stability_test_index::len(stability_tests)]]) for stability_test_index in range(len(stability_tests))],
-                           yerr=[np.nanstd([z[stability_test_index::len(stability_tests)]]) for stability_test_index in range(len(stability_tests))],
+                           [np.nanmean([z[stability_test_index::len(stability_tests)]]) for stability_test_index in
+                            range(len(stability_tests))],
+                           yerr=[np.nanstd([z[stability_test_index::len(stability_tests)]]) for stability_test_index in
+                                 range(len(stability_tests))],
                            width=width,
                            capsize=5)
             # TODO: add the following line to have numbers on top
@@ -198,7 +206,8 @@ class StabilityTestsAnalyzer:
             plt.xticks(rotation=0)
             fig.tight_layout()
             # save the plot
-            plt.savefig(os.path.join(results_folder_path, stability_instance_bar_prints_folder_name, "{}_stability_bar_plot.png".format(row["ds_name"])))
+            plt.savefig(os.path.join(results_folder_path, stability_instance_bar_prints_folder_name,
+                                     "{}_stability_bar_plot.png".format(row["ds_name"])))
             # close for next plot
             plt.close()
 
@@ -250,7 +259,8 @@ class StabilityTestsAnalyzer:
         hierarchy_mdf = pd.DataFrame(mdf_x_data_scaled, columns=mdf[x_column_names].columns)
         # prepare the rows for the clustering later
         for index, row in hierarchy_mdf.iterrows():
-            ds_embeddings.append([row[column_name] if not np.isnan(row[column_name]) else 0 for column_name in x_column_names])
+            ds_embeddings.append(
+                [row[column_name] if not np.isnan(row[column_name]) else 0 for column_name in x_column_names])
             ds_embeddings[index].append(0)
         # find the db_names
         for index, row in mdf.iterrows():
@@ -270,8 +280,78 @@ class StabilityTestsAnalyzer:
                                  show_leaf_counts=True)
             plt.xticks(rotation=90)
             plt.subplots_adjust(bottom=0.2)
-            plt.savefig(os.path.join(results_folder_path, inner_folder_name, "hierarchical_plot_for_{}.png".format(stability_column)))
+            plt.savefig(os.path.join(results_folder_path, inner_folder_name,
+                                     "hierarchical_plot_for_{}.png".format(stability_column)))
             plt.close()
+
+    @staticmethod
+    def scatter_data(mdf,
+                     results_folder_path: str):
+        """
+        This method responsible to generate a 3d scatter plot:
+        1. X-axis: DB
+        2. Y-axis: FS algorithm
+        3. Z-axis: score
+        4. Color: stability test
+        """
+        # load the fs algorithms and stability tests
+        fs_algorithms = {}
+        stability_tests = {}
+        stability_column_names = []
+        for column_name in list(mdf):
+            try:
+                stability_metric, fs_filter, stability_test = StabilityTestsAnalyzer._get_column_signature(
+                    column_name=column_name)
+                if fs_filter not in fs_algorithms:
+                    fs_algorithms[fs_filter] = len(fs_algorithms.keys())
+                if stability_test not in stability_tests:
+                    stability_tests[stability_test] = len(stability_tests.keys())
+                stability_column_names.append(column_name)
+            except:
+                pass
+        datasets_names = {name: index for index, name in enumerate(list(mdf["ds_name"]))}
+
+        # gather the scatter dots
+        x = []
+        y = []
+        z = []
+        color = []
+        for index, row in mdf.iterrows():
+            db_name = row["ds_name"]
+            for stability_column in stability_column_names:
+                stability_metric, fs_filter, stability_test = StabilityTestsAnalyzer._get_column_signature(
+                    column_name=stability_column)
+                x.append(datasets_names[db_name])
+                y.append(fs_algorithms[fs_filter])
+                z.append(row[stability_column])
+                color.append(stability_tests[stability_test])
+
+        # prepare colors
+        color_mapper = {0: "red", 1: "blue", 2: "green"}
+        color_names = [color_mapper[value] for value in color]
+
+        # plot scatter
+        fig, ax = plt.subplots(subplot_kw={"projection": "3d"},
+                               figsize=(10, 10))
+        for color_group in set(color):
+            ax.scatter([value for index, value in enumerate(x) if color[index] == color_group],
+                       [value for index, value in enumerate(y) if color[index] == color_group],
+                       [value for index, value in enumerate(z) if color[index] == color_group],
+                       s=30,
+                       marker="o",
+                       c=color_mapper[color_group],
+                       alpha=0.5,
+                       label="{}".format(list(stability_tests.keys())[color_group]))
+        ax.set_zlim(0, 1)
+        ax.set_xticks(list(range(len(list(datasets_names.keys())))))
+        ax.set_xticklabels(list(datasets_names.keys()))
+        ax.set_yticks(list(range(len(list(fs_algorithms.keys())))))
+        ax.set_yticklabels(list(fs_algorithms.keys()))
+        ax.set_zlabel("Score")
+        plt.legend()
+        plt.show()
+        plt.savefig(os.path.join(results_folder_path, "summary_scatter_plot.png"))
+        plt.close()
 
     @staticmethod
     def prepare_dataset_for_classificator_learning(mdf,
