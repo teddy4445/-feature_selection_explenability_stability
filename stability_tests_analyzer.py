@@ -45,12 +45,10 @@ class StabilityTestsAnalyzer:
             pass
 
         # run analysis in all its forms
-        """
         StabilityTestsAnalyzer.first_plots(mdf=mdf,
                                            results_folder_path=results_folder_path)
         StabilityTestsAnalyzer.hierarchical_clustering(mdf=mdf,
                                                        results_folder_path=results_folder_path)
-        """
         StabilityTestsAnalyzer.scatter_data(mdf=mdf,
                                             results_folder_path=results_folder_path)
         StabilityTestsAnalyzer.prepare_dataset_for_classificator_learning(mdf=mdf,
@@ -350,7 +348,7 @@ class StabilityTestsAnalyzer:
                        s=30,
                        marker="o",
                        c=color_mapper[color_group],
-                       alpha=0.5,
+                       alpha=0.75,
                        label="{}".format(list(stability_tests.keys())[color_group]))
         ax.set_zlim(0, 1)
         ax.set_xticks(list(range(len(list(datasets_names.keys())))))
@@ -362,8 +360,6 @@ class StabilityTestsAnalyzer:
         plt.savefig(os.path.join(results_folder_path, "summary_scatter_plot.png"))
         plt.close()
 
-        """
-
         # generate view in the DB level
         datasets_names_list = list(datasets_names.keys())
         points_in_db = int(len(x) / len(datasets_names_list))
@@ -372,13 +368,27 @@ class StabilityTestsAnalyzer:
             z_db = z[db_index*points_in_db:(db_index+1)*points_in_db]
             fig, ax = plt.subplots(figsize=(8, 8))
             for color_group in set(color):
-                ax.scatter([value for index, value in enumerate(y_db) if color[index] == color_group],
-                           [value for index, value in enumerate(z_db) if color[index] == color_group],
+                x_final = [value for index, value in enumerate(y_db) if color[index] == color_group]
+                y_final = [value for index, value in enumerate(z_db) if color[index] == color_group]
+                ax.scatter(x_final,
+                           y_final,
                            s=30,
                            marker="o",
                            c=color_mapper[color_group],
-                           alpha=0.5,
+                           alpha=0.75,
                            label="{}".format(list(stability_tests.keys())[color_group]))
+                # calc stats
+                mean_y_final = np.mean(y_final)
+                std_y_final = np.std(y_final)
+                ax.fill_between([0, len(x_final)-1],
+                                [mean_y_final + std_y_final, mean_y_final + std_y_final],
+                                [mean_y_final - std_y_final, mean_y_final - std_y_final],
+                                color=color_mapper[color_group],
+                                alpha=0.1)
+                ax.plot([0, len(x_final)-1],
+                        [mean_y_final, mean_y_final],
+                        color=color_mapper[color_group],
+                        alpha=0.8)
             ax.set_xticks(list(range(len(list(fs_algorithms.keys())))))
             ax.set_xticklabels([value.replace("_", " ") for value in list(fs_algorithms.keys())], rotation=90)
             ax.set_yticks([value / 10 for value in list(range(11))])
@@ -391,8 +401,6 @@ class StabilityTestsAnalyzer:
             plt.savefig(os.path.join(results_folder_path, db_view, "summary_scatter_plot_{}_db_view.png".format(datasets_names_list[db_index])))
             plt.close()
             print("StabilityTestsAnalyzer.scatter_data: finish DB view of {}".format(datasets_names_list[db_index]))
-        
-        """
 
         # generate view in the FS level
         fs_algorithms_list = list(fs_algorithms.keys())
@@ -404,13 +412,27 @@ class StabilityTestsAnalyzer:
             z_fs = z[fs_algorithm_index*points_in_fs_algorithm:(fs_algorithm_index+1)*points_in_fs_algorithm]
             fig, ax = plt.subplots(figsize=(8, 8))
             for color_group in set(color):
-                ax.scatter([value for index, value in enumerate(y_fs) if color[index] == color_group],
-                           [value for index, value in enumerate(z_fs) if color[index] == color_group],
+                x_final = [value for index, value in enumerate(y_fs) if color[index] == color_group]
+                y_final = [value for index, value in enumerate(z_fs) if color[index] == color_group]
+                ax.scatter(x_final,
+                           y_final,
                            s=30,
                            marker="o",
                            c=color_mapper[color_group],
-                           alpha=0.5,
+                           alpha=0.75,
                            label="{}".format(list(stability_tests.keys())[color_group]))
+                # calc stats
+                mean_y_final = np.mean(y_final)
+                std_y_final = np.std(y_final)
+                ax.fill_between([0, len(x_final)-1],
+                                [mean_y_final + std_y_final, mean_y_final + std_y_final],
+                                [mean_y_final - std_y_final, mean_y_final - std_y_final],
+                                color=color_mapper[color_group],
+                                alpha=0.1)
+                ax.plot([0, len(x_final)-1],
+                        [mean_y_final, mean_y_final],
+                        color=color_mapper[color_group],
+                        alpha=0.8)
             ax.set_xticks(list(range(len(list(datasets_names.keys())))))
             ax.set_xticklabels([value.replace("_", " ").replace(".csv", "") for value in list(datasets_names.keys())], rotation=90)
             ax.set_yticks([value / 10 for value in list(range(11))])
@@ -423,7 +445,6 @@ class StabilityTestsAnalyzer:
             plt.savefig(os.path.join(results_folder_path, fs_filter_view, "summary_scatter_plot_{}_fs_view.png".format(fs_algorithms_list[fs_algorithm_index])))
             plt.close()
             print("StabilityTestsAnalyzer.scatter_data: finish FS view of {}".format(fs_algorithms_list[fs_algorithm_index]))
-
 
     @staticmethod
     def prepare_dataset_for_classificator_learning(mdf,
