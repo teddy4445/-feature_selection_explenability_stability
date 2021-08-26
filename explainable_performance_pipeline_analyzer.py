@@ -5,6 +5,7 @@ import numpy as np
 
 # project imports
 from lazypredict.Supervised import LazyClassifier
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 from meta_data_table_generator import MetaDataTableGenerator
 from explainable_performance_metrics import ExplainablePerformanceMetrics
@@ -107,17 +108,54 @@ class ExplainablePerformancePipelineAnalyzer:
             y = sub_mdf['best']
 
             # clean the data and fix anomalies
-            X.replace(np.inf, 1e9, inplace=True)
-            X.replace(-np.inf, -1e9, inplace=True)
-            y.replace(np.inf, 1e9, inplace=True)
-            y.replace(-np.inf, -1e9, inplace=True)
+            X.replace(np.inf, np.nan, inplace=True)
+            X.replace(-np.inf, np.nan, inplace=True)
+            y.replace(np.inf, np.nan, inplace=True)
+            y.replace(-np.inf, np.nan, inplace=True)
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=123)
-            clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None, predictions=True)
-            scores, predictions = clf.fit(X_train, X_test, y_train, y_test)
+            cv_scores = []
+            cv_predictions = []
+            X = X.sample(frac=1, random_state=123)
+            y = y[X.index]
+
+            num_of_folds = 5
+            for i in range(num_of_folds):
+                test_size = int(X.shape[0] / num_of_folds)
+                # save index of test set
+                test_index = X.iloc[(i * test_size):((i + 1) * test_size), :].index
+
+                # define X_test, y_test
+                X_test = X.loc[test_index]
+                y_test = y.loc[test_index]
+                # define X_train, y_train
+                X_train = X.loc[~X.index.isin(test_index)]
+                y_train = y.loc[~y.index.isin(test_index)]
+
+                # run classifiers
+                clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None, predictions=True)
+                scores, predictions = clf.fit(X_train, X_test, y_train, y_test)
+
+                # set index of predictions to be test_index
+                predictions.index = test_index
+
+                cv_scores.append(scores)
+                cv_predictions.append(predictions)
+
+            # create final prediction by concatenating predictions
+            predictions = pd.concat(cv_predictions, axis=0)
+            predictions['truth'] = y[predictions.index]
+
+            predictions.to_csv(os.path.join(results_folder_path, "predictions_for_" + filename))
+
+            # create final scores by using calculation over predictions
+            scores = pd.DataFrame(columns=['Accuracy', 'Balanced Accuracy', 'f1-score'])
+            for model_name in predictions.drop('truth',axis=1).columns:
+                accuracy = accuracy_score(predictions['truth'], predictions[model_name], normalize=True)
+                b_accuracy = balanced_accuracy_score(predictions['truth'], predictions[model_name])
+                f1 = f1_score(predictions['truth'], predictions[model_name], average="weighted")
+                scores.loc[model_name] = [accuracy, b_accuracy, f1]
 
             scores.to_csv(os.path.join(results_folder_path, "scores_for_" + filename))
-            predictions.to_csv(os.path.join(results_folder_path, "predictions_for_" + filename))
 
         ExplainablePerformanceMetrics.accuracy(y_true=[],
                                                y_pred=[])
