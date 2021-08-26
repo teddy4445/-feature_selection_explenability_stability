@@ -172,7 +172,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_linearly_to_target running")
         try:
-            return np.std([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
+            return np.nanstd([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1] ** 2
                            for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
         except:
             return np.nan
