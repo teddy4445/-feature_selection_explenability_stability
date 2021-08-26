@@ -59,7 +59,7 @@ class MetaDataTableGenerator:
 
         answer_df = MetaDataTableGenerator.prepare_columns()
 
-        if answer_df is None:
+        if answer_df is not None:
             # create empty dataset we will populate during the function
             cols = MetaDataTableGenerator.prepare_columns()
             answer_df = pd.DataFrame(data=None,
@@ -175,4 +175,4 @@ class MetaDataTableGenerator:
 
 if __name__ == '__main__':
     MetaDataTableGenerator.run(data_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed"),
-                               results_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data"))
+                               results_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data_test"))
