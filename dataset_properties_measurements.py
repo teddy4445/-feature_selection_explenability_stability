@@ -214,7 +214,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_asymmetry_of_features running")
         try:
-            return 3 * np.nansum([(np.mean(dataset[column]) - np.median(dataset[column]))/np.std(dataset[column]) for column in list(dataset)]) / len(list(dataset))
+            return 3 * np.nansum([(np.mean(dataset[column]) - np.median(dataset[column]))/np.std(dataset[column]) for column in list(dataset) if np.std(dataset[column]) > 0]) / len(list(dataset))
         except:
             return np.nan
 
