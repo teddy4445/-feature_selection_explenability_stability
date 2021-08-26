@@ -80,9 +80,11 @@ class ExplainablePerformancePipelineAnalyzer:
             sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].idxmax(axis="columns")
 
             # convert column to integers
-            mapper = {value: index for index, value in enumerate(list(sub_mdf.columns))}
+            mapper = {value: index for index, value in
+                      enumerate(list(sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].columns))}
             sub_mdf['best'] = sub_mdf['best'].apply(lambda x: mapper[x])
-            sub_mdf.to_csv(os.path.join(sub_tables_folder_path, filename))
+            sub_mdf.drop([c for c in sub_mdf.columns if c.startswith('expandability-')], axis=1).to_csv(
+                os.path.join(sub_tables_folder_path, filename))
 
     @staticmethod
     def train_and_test_local_classifier(sub_tables_folder_path: str,
@@ -110,7 +112,7 @@ class ExplainablePerformancePipelineAnalyzer:
             y.replace(np.inf, 1e9, inplace=True)
             y.replace(-np.inf, -1e9, inplace=True)
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3, random_state=123)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, random_state=123)
             clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None, predictions=True)
             scores, predictions = clf.fit(X_train, X_test, y_train, y_test)
 
