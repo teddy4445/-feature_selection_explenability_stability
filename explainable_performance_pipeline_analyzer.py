@@ -102,6 +102,7 @@ class ExplainablePerformancePipelineAnalyzer:
         except:
             pass
 
+        full_scores_list = []
         for filename in os.listdir(sub_tables_folder_path):
             sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename))
             X = sub_mdf[[c for c in sub_mdf.columns if c.startswith("x-")]]
@@ -149,14 +150,30 @@ class ExplainablePerformancePipelineAnalyzer:
 
             # create final scores by using calculation over predictions
             scores = pd.DataFrame(columns=['Accuracy', 'Balanced Accuracy', 'f1-score'])
+            # run over all models and evaluate the performance of each of them
             for model_name in predictions.drop('truth', axis=1).columns:
+                # calculate metrics for all predictions
                 accuracy = accuracy_score(predictions['truth'], predictions[model_name], normalize=True)
                 b_accuracy = balanced_accuracy_score(predictions['truth'], predictions[model_name])
                 f1 = f1_score(predictions['truth'], predictions[model_name], average="weighted")
+                # update the scores dataframe with the relevant results
                 scores.loc[model_name] = [accuracy, b_accuracy, f1]
 
             scores.sort_values(by='Balanced Accuracy', ascending=False).to_csv(
                 os.path.join(results_folder_path, "scores_for_" + filename))
+
+            # add scores of the current metric to the scores list
+            full_scores_list.append(scores.sort_index())
+
+        # create total scores (for all metrics) using average on scores and save to csv
+        total_scores = pd.concat([
+            scores_df.stack() for scores_df in full_scores_list
+        ], axis=1) \
+            .mean(axis=1) \
+            .unstack() \
+            .sort_values(by='Balanced Accuracy', ascending=False)
+        # save to csv
+        total_scores.to_csv(os.path.join(results_folder_path, "total_scores_using_average.csv"))
 
         ExplainablePerformanceMetrics.accuracy(y_true=[],
                                                y_pred=[])
