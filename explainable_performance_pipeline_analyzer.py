@@ -149,13 +149,14 @@ class ExplainablePerformancePipelineAnalyzer:
 
             # create final scores by using calculation over predictions
             scores = pd.DataFrame(columns=['Accuracy', 'Balanced Accuracy', 'f1-score'])
-            for model_name in predictions.drop('truth',axis=1).columns:
+            for model_name in predictions.drop('truth', axis=1).columns:
                 accuracy = accuracy_score(predictions['truth'], predictions[model_name], normalize=True)
                 b_accuracy = balanced_accuracy_score(predictions['truth'], predictions[model_name])
                 f1 = f1_score(predictions['truth'], predictions[model_name], average="weighted")
                 scores.loc[model_name] = [accuracy, b_accuracy, f1]
 
-            scores.to_csv(os.path.join(results_folder_path, "scores_for_" + filename))
+            scores.sort_values(by='Balanced Accuracy', ascending=False).to_csv(
+                os.path.join(results_folder_path, "scores_for_" + filename))
 
         ExplainablePerformanceMetrics.accuracy(y_true=[],
                                                y_pred=[])
