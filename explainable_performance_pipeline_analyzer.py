@@ -5,10 +5,10 @@ import numpy as np
 
 # project imports
 from lazypredict.Supervised import LazyClassifier
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 from meta_data_table_generator import MetaDataTableGenerator
 from explainable_performance_metrics import ExplainablePerformanceMetrics
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
 
 
 class ExplainablePerformancePipelineAnalyzer:
