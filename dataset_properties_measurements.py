@@ -271,7 +271,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_coefficient_of_anomaly running")
         try:
-            return np.mean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+            return np.nanmean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
         except:
             return np.nan
 
@@ -284,7 +284,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_coefficient_of_anomaly running")
         try:
-            return np.std([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+            return np.nanstd([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
         except:
             return np.nan
 
@@ -297,7 +297,8 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_entropy_of_features running")
         try:
-            return np.mean([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+            return np.nanmean([scipy.stats.entropy(dataset[column]) for column in list(dataset)
+                              if scipy.stats.entropy(dataset[column]) != -np.inf])
         except:
             return np.nan
 
