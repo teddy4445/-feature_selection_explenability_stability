@@ -311,7 +311,8 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_entropy_of_features running")
         try:
-            return np.std([scipy.stats.entropy(dataset[column]) for column in list(dataset)])
+            return np.nanstd([scipy.stats.entropy(dataset[column]) for column in list(dataset)
+                           if scipy.stats.entropy(dataset[column]) != -np.inf])
         except:
             return np.nan
 
