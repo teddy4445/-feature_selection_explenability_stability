@@ -229,7 +229,7 @@ class DatasetPropertiesMeasurements:
         try:
             n = len(list(dataset))
             cols = list(dataset)
-            return 2 * sum([sum([scipy.stats.pearsonr(dataset[cols[column_i]],
+            return 2 * sum([np.nansum([scipy.stats.pearsonr(dataset[cols[column_i]],
                                                       dataset[cols[column_j]])[0]
                                  for column_j in range(column_i + 1, len(cols))])
                             for column_i in range(len(cols)-1)]) / (n * (n-1))
