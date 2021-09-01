@@ -1,4 +1,5 @@
 # library imports
+import json
 import os
 import pandas as pd
 import numpy as np
@@ -8,7 +9,7 @@ from lazypredict.Supervised import LazyClassifier
 from sklearn.model_selection import train_test_split
 from meta_data_table_generator import MetaDataTableGenerator
 from explainable_performance_metrics import ExplainablePerformanceMetrics
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, confusion_matrix
 
 
 class ExplainablePerformancePipelineAnalyzer:
@@ -77,12 +78,16 @@ class ExplainablePerformancePipelineAnalyzer:
         for filename in os.listdir(sub_tables_folder_path):
             sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename)).drop('Unnamed: 0', axis=1)
 
-            # find column with maximal value
-            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].idxmax(axis="columns")
-
             # convert column to integers
             mapper = {value: index for index, value in
                       enumerate(list(sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].columns))}
+            # save mapper for later usage
+            with open('classification_results_path/mapper.json', 'w') as f:
+                json.dump(mapper, f)
+
+            # find column with maximal value
+            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].idxmax(axis="columns")
+
             sub_mdf['best'] = sub_mdf['best'].apply(lambda x: mapper[x])
             sub_mdf.drop([c for c in sub_mdf.columns if c.startswith('expandability-')], axis=1).to_csv(
                 os.path.join(sub_tables_folder_path, filename))
@@ -103,8 +108,9 @@ class ExplainablePerformancePipelineAnalyzer:
             pass
 
         full_scores_list = []
+        full_confusion_matrix_list = []
         for filename in os.listdir(sub_tables_folder_path):
-            sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename))
+            sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename)).drop('Unnamed: 0', axis=1)
             X = sub_mdf[[c for c in sub_mdf.columns if c.startswith("x-")]]
             y = sub_mdf['best']
 
@@ -146,20 +152,48 @@ class ExplainablePerformancePipelineAnalyzer:
             predictions = pd.concat(cv_predictions, axis=0)
             predictions['truth'] = y[predictions.index]
 
+            # convert back to class names
+            with open('classification_results_path/mapper.json', 'r') as f:
+                mapper = json.load(f)
+            reverse_mapper = {value: "-".join(key.split('__')[-1].split('-')[1:]) for key, value in mapper.items()}
+            predictions = predictions.applymap(lambda x: reverse_mapper[x])
+
             predictions.to_csv(os.path.join(results_folder_path, "predictions_for_" + filename))
 
             # create final scores by using calculation over predictions
-            scores = pd.DataFrame(columns=['Accuracy', 'Balanced Accuracy', 'f1-score'])
+            scores = pd.DataFrame(columns=['Accuracy', 'f1-score'])
+
             # run over all models and evaluate the performance of each of them
+            confusion_matrix_per_metric = []
             for model_name in predictions.drop('truth', axis=1).columns:
+                # create confusion matrix for the specific model
+                y_true = pd.Series(predictions['truth'], name="Truth")
+                y_pred = pd.Series(predictions[model_name], name="Predicted")
+                df_confusion = pd.crosstab(y_true, y_pred).reindex(columns=list(reverse_mapper.values())).reindex(
+                    list(reverse_mapper.values())).fillna(0)
+
+                # TODO: do we want to save also the partial confusion matrix?
+
+                confusion_matrix_per_metric.append(df_confusion)
+
                 # calculate metrics for all predictions
                 accuracy = accuracy_score(predictions['truth'], predictions[model_name], normalize=True)
-                b_accuracy = balanced_accuracy_score(predictions['truth'], predictions[model_name])
+                # b_accuracy = balanced_accuracy_score(predictions['truth'], predictions[model_name])
                 f1 = f1_score(predictions['truth'], predictions[model_name], average="weighted")
                 # update the scores dataframe with the relevant results
-                scores.loc[model_name] = [accuracy, b_accuracy, f1]
+                scores.loc[model_name] = [accuracy, f1]
 
-            scores.sort_values(by='Balanced Accuracy', ascending=False).to_csv(
+            # create total confusion matrix for the relevant metric using average
+            total_confusion_matrix_for_current_metric = pd.concat([
+                df_confusion.stack() for df_confusion in confusion_matrix_per_metric
+            ], axis=1) \
+                .mean(axis=1) \
+                .unstack()
+
+            total_confusion_matrix_for_current_metric.to_csv(
+                os.path.join(results_folder_path, "total_confusion_matrix_for_" + filename))
+
+            scores.sort_values(by='Accuracy', ascending=False).to_csv(
                 os.path.join(results_folder_path, "scores_for_" + filename))
 
             # add scores of the current metric to the scores list
@@ -171,7 +205,8 @@ class ExplainablePerformancePipelineAnalyzer:
         ], axis=1) \
             .mean(axis=1) \
             .unstack() \
-            .sort_values(by='Balanced Accuracy', ascending=False)
+            .sort_values(by='Accuracy', ascending=False)
+
         # save to csv
         total_scores.to_csv(os.path.join(results_folder_path, "total_scores_using_average.csv"))
 
