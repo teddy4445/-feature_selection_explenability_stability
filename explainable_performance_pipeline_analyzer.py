@@ -176,7 +176,7 @@ class ExplainablePerformancePipelineAnalyzer:
 
             # run over all models and evaluate the performance of each of them
             confusion_matrix_per_metric = []
-            for model_name in predictions.drop('truth', axis=1).columns:
+            for model_name in predictions.drop(['truth', 'top3'], axis=1).columns:
                 # create confusion matrix for the specific model
                 y_true = pd.Series(predictions['truth'], name="Truth")
                 y_pred = pd.Series(predictions[model_name], name="Predicted")
