@@ -85,10 +85,17 @@ class ExplainablePerformancePipelineAnalyzer:
             with open('classification_results_path/mapper.json', 'w') as f:
                 json.dump(mapper, f)
 
-            # find column with maximal value
-            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].idxmax(axis="columns")
+            # find top3 columns
+            sub_mdf['top3'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].apply(
+                lambda s: s.nlargest(3).index.to_list(), axis=1)
 
+            # find column with maximal value
+            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]] \
+                .drop('top3', axis=1).idxmax(axis="columns")
+
+            # take the index of the column instead of the name of the pipeline
             sub_mdf['best'] = sub_mdf['best'].apply(lambda x: mapper[x])
+            sub_mdf['top3'] = sub_mdf['top3'].apply(lambda l: [mapper[x] for x in l])
             sub_mdf.drop([c for c in sub_mdf.columns if c.startswith('expandability-')], axis=1).to_csv(
                 os.path.join(sub_tables_folder_path, filename))
 
