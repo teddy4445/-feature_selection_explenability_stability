@@ -120,6 +120,7 @@ class ExplainablePerformancePipelineAnalyzer:
             sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename)).drop('Unnamed: 0', axis=1)
             X = sub_mdf[[c for c in sub_mdf.columns if c.startswith("x-")]]
             y = sub_mdf['best']
+            top3 = sub_mdf['top3'].apply(lambda s: ExplainablePerformancePipelineAnalyzer.string_to_list(s))
 
             # clean the data and fix anomalies
             X.replace(np.inf, np.nan, inplace=True)
@@ -127,10 +128,10 @@ class ExplainablePerformancePipelineAnalyzer:
             y.replace(np.inf, np.nan, inplace=True)
             y.replace(-np.inf, np.nan, inplace=True)
 
-            cv_scores = []
             cv_predictions = []
             X = X.sample(frac=1, random_state=123)
             y = y[X.index]
+            top3 = top3[X.index]
 
             num_of_folds = 5
             for i in range(num_of_folds):
@@ -147,12 +148,11 @@ class ExplainablePerformancePipelineAnalyzer:
 
                 # run classifiers
                 clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None, predictions=True)
-                scores, predictions = clf.fit(X_train, X_test, y_train, y_test)
+                _, predictions = clf.fit(X_train, X_test, y_train, y_test)
 
                 # set index of predictions to be test_index
                 predictions.index = test_index
 
-                cv_scores.append(scores)
                 cv_predictions.append(predictions)
 
             # create final prediction by concatenating predictions
@@ -165,10 +165,14 @@ class ExplainablePerformancePipelineAnalyzer:
             reverse_mapper = {value: "-".join(key.split('__')[-1].split('-')[1:]) for key, value in mapper.items()}
             predictions = predictions.applymap(lambda x: reverse_mapper[x])
 
+            # add top3 column for prediction in order to create more metrics
+            predictions['top3'] = top3[predictions.index]
+            predictions['top3'] = predictions['top3'].apply(lambda l: [reverse_mapper[x] for x in l])
+
             predictions.to_csv(os.path.join(results_folder_path, "predictions_for_" + filename))
 
             # create final scores by using calculation over predictions
-            scores = pd.DataFrame(columns=['Accuracy', 'f1-score'])
+            scores = pd.DataFrame(columns=['Accuracy', 'f1-score', 'TP', 'FP', 'FN', 'TN', 'top3_accuracy'])
 
             # run over all models and evaluate the performance of each of them
             confusion_matrix_per_metric = []
@@ -181,14 +185,22 @@ class ExplainablePerformancePipelineAnalyzer:
 
                 # TODO: do we want to save also the partial confusion matrix?
 
+                # TODO: calculate (tp, fp, fn, tn) for every confusion matrix
+                tp, fp, fn, tn = 0, 0, 0, 0
+
                 confusion_matrix_per_metric.append(df_confusion)
 
                 # calculate metrics for all predictions
                 accuracy = accuracy_score(predictions['truth'], predictions[model_name], normalize=True)
                 # b_accuracy = balanced_accuracy_score(predictions['truth'], predictions[model_name])
                 f1 = f1_score(predictions['truth'], predictions[model_name], average="weighted")
+
+                # add accuracy for top3
+                check_targets_top3 = predictions.apply(lambda x: x[model_name] in x['top3'], axis=1)
+                top3_accuracy = check_targets_top3.mean()
+
                 # update the scores dataframe with the relevant results
-                scores.loc[model_name] = [accuracy, f1]
+                scores.loc[model_name] = [accuracy, f1, tp, fp, fn, tn, top3_accuracy]
 
             # create total confusion matrix for the relevant metric using average
             total_confusion_matrix_for_current_metric = pd.concat([
@@ -219,6 +231,10 @@ class ExplainablePerformancePipelineAnalyzer:
 
         ExplainablePerformanceMetrics.accuracy(y_true=[],
                                                y_pred=[])
+
+    @staticmethod
+    def string_to_list(s):
+        return [int(x) for x in s[1:-1].replace(' ', '').split(",")]
 
 
 if __name__ == '__main__':
