@@ -14,6 +14,7 @@ class DataSetPrepare:
     # CONSTS #
     MAX_RATIO = 0.05
     MAX_UNIQUE_VALUES = 20
+    MAX_DATA_POINTS = 100000
     # END - CONSTS #
 
     def __init__(self):
@@ -41,6 +42,12 @@ class DataSetPrepare:
             print("Starting with {}".format(os.path.basename(file_path)))
             # read the data
             df = pd.read_csv(file_path)
+
+            # if the dataset is too large, calc the number of rows needed to have up to 10K datapoints or the first 1000 lines
+            if df.shape[0] * df.shape[1] > DataSetPrepare.MAX_DATA_POINTS:
+                max_rows = round(DataSetPrepare.MAX_DATA_POINTS / df.shape[1])
+                df = df.iloc[:max_rows, :]
+
             # move target column to the right (last column)
             target_col = df.pop('target')
 
