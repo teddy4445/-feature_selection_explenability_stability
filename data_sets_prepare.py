@@ -39,11 +39,11 @@ class DataSetPrepare:
             if os.path.exists(os.path.join(data_sets_target_folder_path, os.path.basename(file_path))):
                 print("Skipping {}".format(os.path.basename(file_path)))
                 continue
-            print("Starting with {}".format(os.path.basename(file_path)))
+            print("Working on {}".format(os.path.basename(file_path)))
             # read the data
             df = pd.read_csv(file_path)
 
-            # if the dataset is too large, calc the number of rows needed to have up to 10K datapoints or the first 1000 lines
+            # if the dataset is too large, calc the number of rows needed to be in order to obtain max dataset size
             if df.shape[0] * df.shape[1] > DataSetPrepare.MAX_DATA_POINTS:
                 max_rows = round(DataSetPrepare.MAX_DATA_POINTS / df.shape[1])
                 df = df.iloc[:max_rows, :]
@@ -74,12 +74,14 @@ class DataSetPrepare:
 
             # add targets to the right
             df['target'] = target_col
+
+            #  when we have only the data we need, remove lines with nan
+            df.dropna(inplace=True)
+
             # convert target to integers
             mapper = {value: index for index, value in enumerate(list(df['target'].unique()))}
             df['target'] = df['target'].apply(lambda x: mapper[x])
 
-            # Finally, when we have only the data we need, remove lines with nan
-            df.dropna(inplace=True)
             # save the result
             df.to_csv(os.path.join(data_sets_target_folder_path, os.path.basename(file_path)))
 

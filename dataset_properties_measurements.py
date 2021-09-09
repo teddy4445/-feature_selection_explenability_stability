@@ -159,7 +159,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_linearly_to_target running")
         try:
-            return np.mean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1]**2
+            return np.nanmean([np.corrcoef(dataset[col], dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME])[0, 1]**2
                             for col in list(dataset) if col != DatasetPropertiesMeasurements.TARGET_COL_NAME])
         except:
             return np.nan
@@ -201,7 +201,7 @@ class DatasetPropertiesMeasurements:
             print("DatasetPropertiesMeasurements.kurtosis running")
         try:
             x = dataset.drop(DatasetPropertiesMeasurements.TARGET_COL_NAME, inplace=False, axis=1)
-            return np.mean([scipy.stats.kurtosis(x[column]) for column in list(x)])
+            return np.nanmean([scipy.stats.kurtosis(x[column]) for column in list(x)])
         except:
             return np.nan
 
@@ -214,7 +214,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_asymmetry_of_features running")
         try:
-            return 3 * np.nansum([(np.mean(dataset[column]) - np.median(dataset[column]))/np.std(dataset[column]) for column in list(dataset) if np.std(dataset[column]) > 0]) / len(list(dataset))
+            return 3 * np.nansum([(np.nanmean(dataset[column]) - np.median(dataset[column]))/np.nanstd(dataset[column]) for column in list(dataset) if np.nanstd(dataset[column]) > 0]) / len(list(dataset))
         except:
             return np.nan
 
@@ -245,7 +245,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_coefficient_of_variation_of_feature running")
         try:
-            return np.mean([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+            return np.nanmean([np.nanstd(dataset[column]) / np.nanmean(dataset[column]) for column in list(dataset)])
         except:
             return np.nan
 
@@ -258,7 +258,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_coefficient_of_variation_of_feature running")
         try:
-            return np.std([np.std(dataset[column]) / np.mean(dataset[column]) for column in list(dataset)])
+            return np.nanstd([np.nanstd(dataset[column]) / np.nanmean(dataset[column]) for column in list(dataset)])
         except:
             return np.nan
 
@@ -271,7 +271,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.average_coefficient_of_anomaly running")
         try:
-            return np.nanmean([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+            return np.nanmean([np.nanmean(dataset[column]) / np.nanstd(dataset[column]) for column in list(dataset)])
         except:
             return np.nan
 
@@ -284,7 +284,7 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.std_coefficient_of_anomaly running")
         try:
-            return np.nanstd([np.mean(dataset[column]) / np.std(dataset[column]) for column in list(dataset)])
+            return np.nanstd([np.nanmean(dataset[column]) / np.nanstd(dataset[column]) for column in list(dataset)])
         except:
             return np.nan
 
