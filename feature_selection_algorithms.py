@@ -33,21 +33,24 @@ class FeatureSelectionAlgorithms:
         """
         # TODO: add here later
         """
-        model = DecisionTreeClassifier().fit(x, y)
-        select_model = SelectFromModel(model, prefit=True)
-        data = select_model.transform(x)
-        feature_idx = select_model.get_support()
-        feature_name = x.columns[feature_idx]
-        cols = pd.DataFrame(data=data,
-                            columns=feature_name)
-        re_fitted_model = DecisionTreeClassifier()
-        if len(list(cols)) > 0:
-            re_fitted_model.fit(cols, y)
-        else:
-            re_fitted_model = None
-        if return_model:
-            return cols, re_fitted_model
-        return cols
+        try:
+            model = DecisionTreeClassifier().fit(x, y)
+            select_model = SelectFromModel(model, prefit=True)
+            data = select_model.transform(x)
+            feature_idx = select_model.get_support()
+            feature_name = x.columns[feature_idx]
+            cols = pd.DataFrame(data=data,
+                                columns=feature_name)
+            re_fitted_model = DecisionTreeClassifier()
+            if len(list(cols)) > 0:
+                re_fitted_model.fit(cols, y)
+            else:
+                re_fitted_model = None
+            if return_model:
+                return cols, re_fitted_model
+            return cols
+        except:
+            return [], None
 
     @staticmethod
     def lasso(x: pd.DataFrame,
@@ -56,20 +59,23 @@ class FeatureSelectionAlgorithms:
         """
         # TODO: add here later
         """
-        features = list(x)
-        model = Lasso()
-        model.fit(x, y)
-        coefficients = model.coef_
-        importance = np.abs(coefficients)
-        cols = x[list(np.array(features)[importance > 0])]
-        re_fitted_model = Lasso()
-        if len(list(cols)) > 0:
-            re_fitted_model.fit(cols, y)
-        else:
-            re_fitted_model = None
-        if return_model:
-            return cols, re_fitted_model
-        return cols
+        try:
+            features = list(x)
+            model = Lasso()
+            model.fit(x, y)
+            coefficients = model.coef_
+            importance = np.abs(coefficients)
+            cols = x[list(np.array(features)[importance > 0])]
+            re_fitted_model = Lasso()
+            if len(list(cols)) > 0:
+                re_fitted_model.fit(cols, y)
+            else:
+                re_fitted_model = None
+            if return_model:
+                return cols, re_fitted_model
+            return cols
+        except:
+            return [], None
 
     @staticmethod
     def linear_svc(x: pd.DataFrame,
@@ -78,21 +84,24 @@ class FeatureSelectionAlgorithms:
         """
         # TODO: add here later
         """
-        model = LinearSVC(penalty="l1", dual=False).fit(x, y)
-        select_model = SelectFromModel(model, prefit=True)
-        data = select_model.transform(x)
-        feature_idx = select_model.get_support()
-        feature_name = x.columns[feature_idx]
-        cols = pd.DataFrame(data=data,
-                            columns=feature_name)
-        re_fitted_model = LinearSVC(penalty="l1", dual=False)
-        if len(list(cols)) > 0:
-            re_fitted_model.fit(cols, y)
-        else:
-            re_fitted_model = None
-        if return_model:
-            return cols, re_fitted_model
-        return cols
+        try:
+            model = LinearSVC(penalty="l1", dual=False).fit(x, y)
+            select_model = SelectFromModel(model, prefit=True)
+            data = select_model.transform(x)
+            feature_idx = select_model.get_support()
+            feature_name = x.columns[feature_idx]
+            cols = pd.DataFrame(data=data,
+                                columns=feature_name)
+            re_fitted_model = LinearSVC(penalty="l1", dual=False)
+            if len(list(cols)) > 0:
+                re_fitted_model.fit(cols, y)
+            else:
+                re_fitted_model = None
+            if return_model:
+                return cols, re_fitted_model
+            return cols
+        except:
+            return [], None
 
     ### END - EMBEDDING ###
 

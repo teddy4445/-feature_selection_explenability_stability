@@ -15,6 +15,10 @@ class DataSetPrepare:
     MAX_RATIO = 0.05
     MAX_UNIQUE_VALUES = 20
     MAX_DATA_POINTS = 100000
+    MAX_FEATURES = 100
+    MAX_ROWS = 2000
+    MIN_FEATURES_TO_SAVE = 4
+    MIN_ROWS_TO_SAVE = 30
     # END - CONSTS #
 
     def __init__(self):
@@ -43,6 +47,9 @@ class DataSetPrepare:
             # read the data
             df = pd.read_csv(file_path)
 
+            # we do not want to handle too large feature space
+            if df.shape[1] > DataSetPrepare.MAX_FEATURES:
+                df = df.iloc[:, -1 * DataSetPrepare.MAX_FEATURES:]
             # if the dataset is too large, calc the number of rows needed to be in order to obtain max dataset size
             if df.shape[0] * df.shape[1] > DataSetPrepare.MAX_DATA_POINTS:
                 max_rows = round(DataSetPrepare.MAX_DATA_POINTS / df.shape[1])
@@ -82,8 +89,14 @@ class DataSetPrepare:
             mapper = {value: index for index, value in enumerate(list(df['target'].unique()))}
             df['target'] = df['target'].apply(lambda x: mapper[x])
 
-            # save the result
-            df.to_csv(os.path.join(data_sets_target_folder_path, os.path.basename(file_path)))
+            # if after this is ready we have too much rows, reduce it to manageable size
+            if df.shape[0] > DataSetPrepare.MAX_ROWS:
+                df = df.iloc[:DataSetPrepare.MAX_ROWS,:]
+
+            # if the df is not reduced too much after fixing
+            if df.shape[0] > DataSetPrepare.MIN_ROWS_TO_SAVE and df.shape[1] > DataSetPrepare.MIN_FEATURES_TO_SAVE:
+                # save the result
+                df.to_csv(os.path.join(data_sets_target_folder_path, os.path.basename(file_path)))
 
 
 if __name__ == '__main__':
