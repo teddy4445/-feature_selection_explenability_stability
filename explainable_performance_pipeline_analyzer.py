@@ -18,6 +18,10 @@ class ExplainablePerformancePipelineAnalyzer:
     computed by the MetaDataTableGenerator.run class
     """
 
+    # CONSTS #
+    MAPPER_FILE_NAME = "mapper.json"
+    # END - CONSTS #
+
     def __init__(self):
         pass
 
@@ -76,22 +80,30 @@ class ExplainablePerformancePipelineAnalyzer:
         """
         # read sub_mdf
         for filename in os.listdir(sub_tables_folder_path):
-            sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename)).drop('Unnamed: 0', axis=1)
+            sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename))
+            try:
+                sub_mdf.drop('Unnamed: 0', axis=1, inplace=True)
+            except:
+                pass
 
             # convert column to integers
             mapper = {value: index for index, value in
                       enumerate(list(sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].columns))}
             # save mapper for later usage
-            with open('classification_results_path/mapper.json', 'w') as f:
-                json.dump(mapper, f)
+            try:
+                with open(os.path.join(os.path.dirname(sub_tables_folder_path), ExplainablePerformancePipelineAnalyzer.MAPPER_FILE_NAME), 'w') as mapper_file:
+                    json.dump(mapper, mapper_file, indent=2)
+            except:
+                os.makedirs(sub_tables_folder_path)
+                with open(os.path.join(os.path.dirname(sub_tables_folder_path), ExplainablePerformancePipelineAnalyzer.MAPPER_FILE_NAME), 'w') as mapper_file:
+                    json.dump(mapper, mapper_file, indent=2)
 
             # find top3 columns
             sub_mdf['top3'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].apply(
                 lambda s: s.nlargest(3).index.to_list(), axis=1)
 
             # find column with maximal value
-            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]] \
-                .drop('top3', axis=1).idxmax(axis="columns")
+            sub_mdf['best'] = sub_mdf[[c for c in sub_mdf.columns if not c.startswith('x-')]].drop('top3', axis=1).idxmax(axis="columns")
 
             # take the index of the column instead of the name of the pipeline
             sub_mdf['best'] = sub_mdf['best'].apply(lambda x: mapper[x])
@@ -117,7 +129,11 @@ class ExplainablePerformancePipelineAnalyzer:
         full_scores_list = []
         full_confusion_matrix_list = []
         for filename in os.listdir(sub_tables_folder_path):
-            sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename)).drop('Unnamed: 0', axis=1)
+            sub_mdf = pd.read_csv(os.path.join(sub_tables_folder_path, filename))
+            try:
+                sub_mdf.drop('Unnamed: 0', axis=1, inplace=True)
+            except:
+                pass
             X = sub_mdf[[c for c in sub_mdf.columns if c.startswith("x-")]]
             y = sub_mdf['best']
             top3 = sub_mdf['top3'].apply(lambda s: ExplainablePerformancePipelineAnalyzer.string_to_list(s))
@@ -160,10 +176,15 @@ class ExplainablePerformancePipelineAnalyzer:
             predictions['truth'] = y[predictions.index]
 
             # convert back to class names
-            with open('classification_results_path/mapper.json', 'r') as f:
+            with open(os.path.join(os.path.dirname(sub_tables_folder_path), ExplainablePerformancePipelineAnalyzer.MAPPER_FILE_NAME), 'r') as f:
                 mapper = json.load(f)
+
             reverse_mapper = {value: "-".join(key.split('__')[-1].split('-')[1:]) for key, value in mapper.items()}
-            predictions = predictions.applymap(lambda x: reverse_mapper[x])
+            try:
+                predictions = predictions.applymap(lambda x: reverse_mapper[x])
+            except:
+                predictions.dropna(inplace=True)
+                predictions = predictions.applymap(lambda x: reverse_mapper[x])
 
             # add top3 column for prediction in order to create more metrics
             predictions['top3'] = top3[predictions.index]

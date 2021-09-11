@@ -253,7 +253,11 @@ class StabilityTestsAnalyzer:
         # normlize the dataset to handle same size data
         mdf_x_data = mdf[x_column_names].values  # returns a numpy array
         min_max_scaler = preprocessing.MinMaxScaler()
-        mdf_x_data_scaled = min_max_scaler.fit_transform(mdf_x_data)
+        try:
+            mdf_x_data_scaled = min_max_scaler.fit_transform(mdf_x_data)
+        except:
+            mdf_x_data = mdf_x_data[~np.isnan(mdf_x_data).any(axis=1)]
+            mdf_x_data_scaled = min_max_scaler.fit_transform(mdf_x_data)
         hierarchy_mdf = pd.DataFrame(mdf_x_data_scaled, columns=mdf[x_column_names].columns)
         # prepare the rows for the clustering later
         for index, row in hierarchy_mdf.iterrows():
@@ -262,7 +266,9 @@ class StabilityTestsAnalyzer:
             ds_embeddings[index].append(0)
         # find the db_names
         for index, row in mdf.iterrows():
-            ds_labels.append(row["ds_name"].replace(".csv", ""))
+            # make sure this is a row we introduced at some point
+            if not row[x_column_names].isna().values.any():
+                ds_labels.append(row["ds_name"].replace(".csv", ""))
 
         # plot  hierarchy dendrogram
         for stability_column in stability_column_names:

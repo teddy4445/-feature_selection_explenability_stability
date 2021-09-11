@@ -175,4 +175,4 @@ class MetaDataTableGenerator:
 
 if __name__ == '__main__':
     MetaDataTableGenerator.run(data_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed"),
-                               results_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data_test"))
+                               results_folder_path=os.path.join(os.path.dirname(__file__), "meta_table_data"))
