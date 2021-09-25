@@ -30,6 +30,11 @@ class DatasetPropertiesMeasurements:
         """
         return ["row_count",
                 "col_count",
+                "row_over_class",
+                "col_over_class",
+                "row_over_col",
+                "col_count",
+                "col_count",
                 "col_numerical_count",
                 "col_categorical_count",
                 "classes_count",
@@ -55,6 +60,9 @@ class DatasetPropertiesMeasurements:
         return {
             "row_count": DatasetPropertiesMeasurements.row_count(dataset=dataset),
             "col_count": DatasetPropertiesMeasurements.col_count(dataset=dataset),
+            "row_over_class": DatasetPropertiesMeasurements.row_over_class(dataset=dataset),
+            "col_over_class": DatasetPropertiesMeasurements.col_over_class(dataset=dataset),
+            "row_over_col": DatasetPropertiesMeasurements.row_over_col(dataset=dataset),
             "col_numerical_count": DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset),
             "col_categorical_count": DatasetPropertiesMeasurements.col_categorical_count(dataset=dataset),
             "classes_count": DatasetPropertiesMeasurements.classes_count(dataset=dataset),
@@ -79,6 +87,9 @@ class DatasetPropertiesMeasurements:
         """
         return [DatasetPropertiesMeasurements.row_count(dataset=dataset),
                 DatasetPropertiesMeasurements.col_count(dataset=dataset),
+                DatasetPropertiesMeasurements.row_over_class(dataset=dataset),
+                DatasetPropertiesMeasurements.col_over_class(dataset=dataset),
+                DatasetPropertiesMeasurements.row_over_col(dataset=dataset),
                 DatasetPropertiesMeasurements.col_numerical_count(dataset=dataset),
                 DatasetPropertiesMeasurements.col_categorical_count(dataset=dataset),
                 DatasetPropertiesMeasurements.classes_count(dataset=dataset),
@@ -108,6 +119,36 @@ class DatasetPropertiesMeasurements:
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.col_count running")
         return dataset.shape[1]
+
+    @staticmethod
+    def row_over_class(dataset: pd.DataFrame):
+        # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.row_over_class running")
+        try:
+            return dataset.shape[0] / dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME].nunique()
+        except:
+            return np.nan
+
+    @staticmethod
+    def col_over_class(dataset: pd.DataFrame):
+        # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.col_over_class running")
+        try:
+            return dataset.shape[1] / dataset[DatasetPropertiesMeasurements.TARGET_COL_NAME].nunique()
+        except:
+            return np.nan
+
+    @staticmethod
+    def row_over_col(dataset: pd.DataFrame):
+        # Idea from (Engels and Theusinger 1998)
+        if DatasetPropertiesMeasurements.IS_DEBUG:
+            print("DatasetPropertiesMeasurements.col_over_class running")
+        try:
+            return dataset.shape[0] / dataset.shape[1]
+        except:
+            return np.nan
 
     @staticmethod
     def col_numerical_count(dataset: pd.DataFrame,

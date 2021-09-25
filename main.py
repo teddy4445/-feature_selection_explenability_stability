@@ -4,6 +4,7 @@ import math
 
 # project imports
 from meta_data_table_generator import MetaDataTableGenerator
+from stability_tests_analyzer import StabilityTestsAnalyzer
 from explainable_performance_pipeline_analyzer import ExplainablePerformancePipelineAnalyzer
 
 
@@ -15,9 +16,11 @@ class Main:
     # consts #
     RESULTS_FOLDER_NAME = "results"
     DATA_FOLDER_NAME = "data_fixed"
+    SUB_TABLE_FOLDER_NAME = "sub_meta_tables"
 
     DATA_FOLDER = os.path.join(os.path.dirname(__file__), DATA_FOLDER_NAME)
     RESULTS_FOLDER = os.path.join(os.path.dirname(__file__), RESULTS_FOLDER_NAME)
+    SUB_TABLES_FOLDER_PATH = os.path.join(os.path.dirname(__file__), SUB_TABLE_FOLDER_NAME)
     RESULTS_EXP_FOLDER = os.path.join(os.path.dirname(__file__), RESULTS_FOLDER_NAME, "expandability")
     RESULTS_STABILITY_FOLDER = os.path.join(os.path.dirname(__file__), RESULTS_FOLDER_NAME, "stability")
     # end - consts #
@@ -27,13 +30,15 @@ class Main:
 
     @staticmethod
     def run_all_project(data_folder_path: str,
-                        results_folder_path: str):
-        Main.prepare_meta_data_set(data_folder_path=data_folder_path,
-                                   results_folder_path=results_folder_path)
+                        results_folder_path: str,
+                        sub_tables_folder_path: str):
         Main.prepare_meta_data_set(data_folder_path=data_folder_path,
                                    results_folder_path=results_folder_path)
         Main.analyze_stability_test(data_folder_path=data_folder_path,
                                     results_folder_path=results_folder_path)
+        Main.analyze_expandability_performance_pipeline(data_folder_path=data_folder_path,
+                                                        results_folder_path=results_folder_path,
+                                                        sub_tables_folder_path=sub_tables_folder_path)
 
     @staticmethod
     def prepare_meta_data_set(data_folder_path: str,
@@ -49,9 +54,11 @@ class Main:
 
     @staticmethod
     def analyze_expandability_performance_pipeline(data_folder_path: str,
-                                                   results_folder_path: str):
+                                                   results_folder_path: str,
+                                                   sub_tables_folder_path: str):
         ExplainablePerformancePipelineAnalyzer.run(data_folder_path=data_folder_path,
-                                                   results_folder_path=results_folder_path)
+                                                   results_folder_path=results_folder_path,
+                                                   sub_tables_folder_path=sub_tables_folder_path)
 
     def __repr__(self):
         return self.__str__()
@@ -62,4 +69,5 @@ class Main:
 
 if __name__ == '__main__':
     Main.run_all_project(data_folder_path=Main.DATA_FOLDER,
-                         results_folder_path=Main.RESULTS_FOLDER)
+                         results_folder_path=Main.RESULTS_FOLDER,
+                         sub_tables_folder_path=Main.SUB_TABLES_FOLDER_PATH)
