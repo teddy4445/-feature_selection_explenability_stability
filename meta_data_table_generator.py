@@ -119,7 +119,7 @@ class MetaDataTableGenerator:
     def calculate_single_dataset_vector(dataset,
                                         dataset_name: str):
         """
-        Calculate the row corosponding to each dataset in the meta-data table
+        Calculate the row corresponding to each dataset in the meta-data table
         """
         # NOTE: we assume that all the datasets are classification tasks and that the last column is the target column #
         dataset_summary_results = {"ds_name": dataset_name}

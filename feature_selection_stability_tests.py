@@ -1,10 +1,10 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, recall_score, precision_score, r2_score
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.metrics import accuracy_score, recall_score, precision_score, r2_score
 
 
 class FeatureSelectionStabilityTests:

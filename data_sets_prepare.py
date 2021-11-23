@@ -12,13 +12,13 @@ class DataSetPrepare:
     """
 
     # CONSTS #
-    MAX_RATIO = 0.05
-    MAX_UNIQUE_VALUES = 20
-    MAX_DATA_POINTS = 100000
-    MAX_FEATURES = 100
-    MAX_ROWS = 2000
-    MIN_FEATURES_TO_SAVE = 4
-    MIN_ROWS_TO_SAVE = 30
+    MAX_RATIO = 0.2
+    MAX_UNIQUE_VALUES = 30
+    MAX_DATA_POINTS = 10000
+    MAX_FEATURES = 50
+    MAX_ROWS = 1000
+    MIN_FEATURES_TO_SAVE = 2
+    MIN_ROWS_TO_SAVE = 20
     # END - CONSTS #
 
     def __init__(self):
@@ -32,11 +32,6 @@ class DataSetPrepare:
         :param data_sets_source_folder_path: where the original data is located
         :param data_sets_target_folder_path: where the fixed data is saved
         """
-        # make sure we have target folder
-        try:
-            os.makedirs(data_sets_target_folder_path)
-        except:
-            pass
         # run on each file in the source and save it
         for file_path in glob(os.path.join(data_sets_source_folder_path, "*.csv")):
             # alert
@@ -66,13 +61,6 @@ class DataSetPrepare:
                     if unique_count / df[col].size > DataSetPrepare.MAX_RATIO or unique_count > DataSetPrepare.MAX_UNIQUE_VALUES:
                         col_to_remove.append(col)
                     else:
-                        """
-                        new_cols_names = list(df[col].unique())
-                        for new_name in new_cols_names:
-                            df[new_name] = 0
-                            df.loc[df[col] == new_name, new_name] = 1
-                        col_to_remove.append(col)
-                        """
                         # TODO: maybe use one hot encoding instead
                         mapper = {value: index for index, value in enumerate(list(df[col].unique()))}
                         df[col] = df[col].apply(lambda x: mapper[x])
@@ -97,8 +85,3 @@ class DataSetPrepare:
             if df.shape[0] > DataSetPrepare.MIN_ROWS_TO_SAVE and df.shape[1] > DataSetPrepare.MIN_FEATURES_TO_SAVE:
                 # save the result
                 df.to_csv(os.path.join(data_sets_target_folder_path, os.path.basename(file_path)))
-
-
-if __name__ == '__main__':
-    DataSetPrepare.run(data_sets_source_folder_path=os.path.join(os.path.dirname(__file__), "data"),
-                       data_sets_target_folder_path=os.path.join(os.path.dirname(__file__), "data_fixed"))

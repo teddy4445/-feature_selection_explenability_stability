@@ -33,8 +33,6 @@ class DatasetPropertiesMeasurements:
                 "row_over_class",
                 "col_over_class",
                 "row_over_col",
-                "col_count",
-                "col_count",
                 "col_numerical_count",
                 "col_categorical_count",
                 "classes_count",
@@ -236,7 +234,7 @@ class DatasetPropertiesMeasurements:
     @staticmethod
     def kurtosis(dataset: pd.DataFrame):
         """
-        :return: mean peakedness of the probability distributions of the features
+        :return: mean tailedness of the probability distributions of the features
         """
         if DatasetPropertiesMeasurements.IS_DEBUG:
             print("DatasetPropertiesMeasurements.kurtosis running")
