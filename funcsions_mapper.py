@@ -97,11 +97,15 @@ class FunctionsMapper:
         y_pred = model.predict(x_test[list(filter_embbeding_x)]) if model is not None else [0 for val in y_test]
 
         # compute the overall score of the model
-        return metrics_components[0](data=filter_embbeding_x,
-                                     y_true=y_test,
-                                     y_pred=y_pred,
-                                     performance_metric=metrics_components[1],
-                                     explainability_metric=metrics_components[2])
+        if len(metrics_components) == 3:
+            return metrics_components[0](data=filter_embbeding_x,
+                                         y_true=y_test,
+                                         y_pred=y_pred,
+                                         performance_metric=metrics_components[1],
+                                         explainability_metric=metrics_components[2])
+        elif len(metrics_components) == 1:
+            return metrics_components[0](y_true=y_test,
+                                         y_pred=y_pred)
 
     @staticmethod
     def run_stability_column(stability_test: str,
@@ -127,10 +131,13 @@ class FunctionsMapper:
         as a list of the functions (combine, performance, explainablity)
         """
         # splitting element which is constant in the 'MetaDataTableGenerator' class
-        SPLIT_ELEMENT = "__"
-        # split string to elements
-        elements = metric.strip().split(SPLIT_ELEMENT)
-        # return answer
-        return [FunctionsMapper.METRICS[element] for element in elements[::-1]]
+        try:
+            SPLIT_ELEMENT = "__"
+            # split string to elements
+            elements = metric.strip().split(SPLIT_ELEMENT)
+            # return answer
+            return [FunctionsMapper.METRICS[element] for element in elements[::-1]]
+        except:
+            return [ExplainablePerformanceMetrics.accuracy]
 
     # end - complex metric function #
